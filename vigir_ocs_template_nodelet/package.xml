@@ -3,9 +3,13 @@
   <name>vigir_ocs_template_nodelet</name>
   <version>0.1.0</version>
   <description>The OCS template nodelet package</description>
-  <maintainer email="fbacim@vt.edu">Felipe Bacim</maintainer>
-  <license>TORC</license>
+  
+  <maintainer email="romay@sim.tu-darmstadt.de">Alberto Romay</maintainer>
+  
+  <author email="romay@sim.tu-darmstadt.de">Alberto Romay</author>
   <author email="fbacim@vt.edu">Felipe Bacim</author>
+  
+  <license>BSD</license>
 
   <buildtool_depend>catkin</buildtool_depend>
   

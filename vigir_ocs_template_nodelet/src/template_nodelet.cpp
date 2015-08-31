@@ -31,7 +31,7 @@
  *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
-//@TODO_ADD_AUTHOR_INFO
+// Authors: Alberto Romay and Felipe Bacim
 #include "template_nodelet.h"
 
 namespace ocs_template
