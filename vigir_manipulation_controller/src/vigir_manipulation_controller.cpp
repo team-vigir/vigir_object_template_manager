@@ -80,6 +80,7 @@ void VigirManipulationController::initializeManipulationController(ros::NodeHand
     this->hand_id_            = 1;
     this->hand_side_          = "right";
     this->planning_group_     = "r_arm_group";
+    this->planner_id_         = "";
     if ("l_hand" == this->wrist_name_){
         this->hand_id_        = -1;
         this->hand_side_      = "left";
@@ -113,6 +114,7 @@ void VigirManipulationController::initializeManipulationController(ros::NodeHand
     template_stitch_sub_       = nh.subscribe("template_stitch",    1, &VigirManipulationController::templateStitchCallback,     this);
     current_wrist_sub_         = nh.subscribe("wrist_pose",         1, &VigirManipulationController::wristPoseCallback,          this);
     grasp_planning_group_sub_  = nh.subscribe("use_torso",          1, &VigirManipulationController::graspPlanningGroupCallback, this);
+    grasp_planner_sub_         = nh.subscribe("use_drake_ik",       1, &VigirManipulationController::graspPlannerCallback,       this);
     moveToPose_sub_            = nh.subscribe("move_to_pose",       1, &VigirManipulationController::moveToPoseCallback,         this);
     detach_object_sub_         = nh.subscribe("detach_object",      1, &VigirManipulationController::setDetachingObject,         this);
     affordance_command_sub_    = nh.subscribe("affordance_command", 1, &VigirManipulationController::affordanceCommandCallback,  this);
@@ -221,7 +223,12 @@ void VigirManipulationController::initializeManipulationController(ros::NodeHand
 
 void VigirManipulationController::graspPlanningGroupCallback(const std_msgs::Bool::ConstPtr& msg)
 {
+    if ( planner_id_ == "drake" ) // always use whole-body-group for Drake
+        return;
+
     bool use_torso = msg->data;
+
+
     if (use_torso)
     {
         if (hand_id_>0)
@@ -237,6 +244,19 @@ void VigirManipulationController::graspPlanningGroupCallback(const std_msgs::Boo
             planning_group_ = "l_arm_group";
     }
 }
+
+void VigirManipulationController::graspPlannerCallback(const std_msgs::Bool::ConstPtr& msg)
+{
+    bool use_drake = msg->data;
+    if ( use_drake ) {
+        planner_id_ = "drake";
+        planning_group_ = "whole_body_group";
+    }
+    else {
+        planner_id_ = "";
+    }
+}
+
 
 void VigirManipulationController::templateStitchCallback(const vigir_grasp_msgs::GraspSelection& grasp_msg)
 {
@@ -777,12 +797,18 @@ void VigirManipulationController::sendFinalGrasp(const geometry_msgs::PoseStampe
     move_goal.extended_planning_options.keep_endeffector_orientation       = false;  //Final Grasps are always sent to the correct orientation
     move_goal.extended_planning_options.execute_incomplete_cartesian_plans = true;
     move_goal.request.group_name                                           = this->planning_group_;
+    move_goal.request.planner_id                                           = this->planner_id_;
     move_goal.request.allowed_planning_time                                = 1.0;
     move_goal.request.num_planning_attempts                                = 1;
     move_goal.request.max_velocity_scaling_factor                          = 0.1;
 
     move_goal.extended_planning_options.target_frame = final_grasp.header.frame_id;
     move_goal.extended_planning_options.target_poses.push_back(final_grasp.pose);
+
+    if ( hand_id_> 0 )
+        move_goal.extended_planning_options.target_link_names.push_back("r_hand");
+    else
+        move_goal.extended_planning_options.target_link_names.push_back("l_hand");
 
     move_action_client.sendGoal(move_goal);
 
@@ -830,6 +856,7 @@ void VigirManipulationController::sendCircularAffordance(const vigir_object_temp
     move_goal.extended_planning_options.pitch                              = affordance.pitch;
     move_goal.extended_planning_options.execute_incomplete_cartesian_plans = true;
     move_goal.request.group_name                                           = this->planning_group_;
+    move_goal.request.planner_id                                           = this->planner_id_;
     move_goal.request.allowed_planning_time                                = 1.0;
     move_goal.request.num_planning_attempts                                = 1;
     move_goal.request.max_velocity_scaling_factor                          = affordance.speed/100.0;
@@ -854,6 +881,11 @@ void VigirManipulationController::sendCircularAffordance(const vigir_object_temp
     wrist_target_pub_.publish(affordance.waypoints[0]);
 
     move_goal.extended_planning_options.target_poses.push_back(affordance.waypoints[0].pose);
+
+    if ( hand_id_> 0 )
+        move_goal.extended_planning_options.target_link_names.push_back("r_hand");
+    else
+        move_goal.extended_planning_options.target_link_names.push_back("l_hand");
 
     move_action_client.sendGoal(move_goal);
 
@@ -888,6 +920,7 @@ void VigirManipulationController::sendCartesianAffordance(vigir_object_template_
     move_goal.extended_planning_options.keep_endeffector_orientation       = true;  //Cartesian Affordances don't care about end effector orientation
     move_goal.extended_planning_options.execute_incomplete_cartesian_plans = true;
     move_goal.request.group_name                                           = this->planning_group_;
+    move_goal.request.planner_id                                           = this->planner_id_;
     move_goal.request.allowed_planning_time                                = 1.0;
     move_goal.request.num_planning_attempts                                = 1;
     move_goal.request.max_velocity_scaling_factor                          = affordance.speed/100.0;
@@ -931,6 +964,11 @@ void VigirManipulationController::sendCartesianAffordance(vigir_object_template_
     move_goal.extended_planning_options.target_frame = this->wrist_name_;
     move_goal.extended_planning_options.target_poses.push_back(affordance.waypoints[0].pose);
 
+    if ( hand_id_> 0 )
+        move_goal.extended_planning_options.target_link_names.push_back("r_hand");
+    else
+        move_goal.extended_planning_options.target_link_names.push_back("l_hand");
+
     move_action_client.sendGoal(move_goal);
 
     //wait for the action to return
@@ -964,6 +1002,7 @@ void VigirManipulationController::sendFixedPoseAffordance(const vigir_object_tem
     move_goal.extended_planning_options.rotation_angle                     = affordance.displacement;
     move_goal.extended_planning_options.execute_incomplete_cartesian_plans = true;
     move_goal.request.group_name                                           = this->planning_group_;
+    move_goal.request.planner_id                                           = this->planner_id_;
     move_goal.request.allowed_planning_time                                = 1.0;
     move_goal.request.num_planning_attempts                                = 1;
     move_goal.request.max_velocity_scaling_factor                          = affordance.speed/100.0;
@@ -973,6 +1012,11 @@ void VigirManipulationController::sendFixedPoseAffordance(const vigir_object_tem
     wrist_target_pub_.publish(affordance.waypoints[0]);
 
     move_goal.extended_planning_options.target_poses.push_back(affordance.waypoints[0].pose);
+
+    if ( hand_id_> 0 )
+        move_goal.extended_planning_options.target_link_names.push_back("r_hand");
+    else
+        move_goal.extended_planning_options.target_link_names.push_back("l_hand");
 
     move_action_client.sendGoal(move_goal);
 

@@ -153,6 +153,7 @@ namespace vigir_manipulation_controller {
     std::string                                hand_side_;       // left or right
     int                                        hand_id_;         // -1=left, 1=right
     std::string                                planning_group_;
+    std::string                                planner_id_;
     char                                       last_template_stitch_id_;
 
     // Internal variables used by active controllers
@@ -204,6 +205,7 @@ namespace vigir_manipulation_controller {
     ros::Subscriber    current_wrist_sub_;         ///< Current wrist pose (same frame as target)
     ros::Subscriber    planner_status_sub_;        ///< Planner status (for reporting bundled error messages)
     ros::Subscriber    grasp_planning_group_sub_;
+    ros::Subscriber    grasp_planner_sub_;
 
 
     ros::ServiceClient inst_grasp_info_client_;
@@ -225,6 +227,7 @@ namespace vigir_manipulation_controller {
 
     /** Set the current planning group to "arm only" or "arm + torso"           */
     void  graspPlanningGroupCallback(const std_msgs::Bool::ConstPtr& msg);
+    void  graspPlannerCallback(const std_msgs::Bool::ConstPtr& msg);
     void  affordanceCommandCallback(const vigir_object_template_msgs::Affordance &affordance);
     void  updateHandMarkerCallback(const std_msgs::Int8 &usability_id);
 
