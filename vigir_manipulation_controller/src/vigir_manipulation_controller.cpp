@@ -80,12 +80,13 @@ void VigirManipulationController::initializeManipulationController(ros::NodeHand
     this->hand_id_            = 1;
     this->hand_side_          = "right";
     this->planning_group_     = "r_arm_group";
-    this->planner_id_         = "";
     if ("l_hand" == this->wrist_name_){
         this->hand_id_        = -1;
         this->hand_side_      = "left";
         this->planning_group_ = "l_arm_group";
     }
+
+    this->use_drake_ik_ = false;
 
     // Not sure why this waiting is performed in the original joint control tutorial
     // Maybe related to setting transport to UDP and waiting before Publishers are online?
@@ -223,9 +224,6 @@ void VigirManipulationController::initializeManipulationController(ros::NodeHand
 
 void VigirManipulationController::graspPlanningGroupCallback(const std_msgs::Bool::ConstPtr& msg)
 {
-    if ( planner_id_ == "drake" ) // always use whole-body-group for Drake
-        return;
-
     bool use_torso = msg->data;
 
 
@@ -247,14 +245,7 @@ void VigirManipulationController::graspPlanningGroupCallback(const std_msgs::Boo
 
 void VigirManipulationController::graspPlannerCallback(const std_msgs::Bool::ConstPtr& msg)
 {
-    bool use_drake = msg->data;
-    if ( use_drake ) {
-        planner_id_ = "drake";
-        planning_group_ = "whole_body_group";
-    }
-    else {
-        planner_id_ = "";
-    }
+    use_drake_ik_ = msg->data;
 }
 
 
@@ -397,8 +388,9 @@ void VigirManipulationController::moveToPoseCallback(const vigir_grasp_msgs::Gra
             if(index >= size)
                 ROS_ERROR_STREAM("Template server response id: " << last_grasp_res_.grasp_information.grasps[index].id << " while searching for id: " << grasp.grasp_id.data);
             else{
-                this->wrist_target_pose_.planning_group.data                     = planning_group_;
-                this->wrist_target_pose_.use_environment_obstacle_avoidance.data = true;
+                this->wrist_target_pose_.planning_group                          = planning_group_;
+                this->wrist_target_pose_.target_link_name                        = (hand_id_ > 0) ? "r_hand" : "l_hand";
+                this->wrist_target_pose_.use_environment_obstacle_avoidance      = true;
                 if(grasp.final_pose){
                     this->wrist_target_pose_.pose = grasp_pose;
                     calcWristTarget(grasp_pose.pose);  //Applies stitch transform in hand frame
@@ -796,8 +788,15 @@ void VigirManipulationController::sendFinalGrasp(const geometry_msgs::PoseStampe
     move_goal.extended_planning_options.allow_environment_collisions       = true;
     move_goal.extended_planning_options.keep_endeffector_orientation       = false;  //Final Grasps are always sent to the correct orientation
     move_goal.extended_planning_options.execute_incomplete_cartesian_plans = true;
-    move_goal.request.group_name                                           = this->planning_group_;
-    move_goal.request.planner_id                                           = this->planner_id_;
+
+    if ( use_drake_ik_ ) {
+        move_goal.request.group_name = "whole_body_group";
+        move_goal.request.planner_id = "drake";
+    }
+    else {
+        move_goal.request.group_name = this->planning_group_;
+    }
+
     move_goal.request.allowed_planning_time                                = 1.0;
     move_goal.request.num_planning_attempts                                = 1;
     move_goal.request.max_velocity_scaling_factor                          = 0.1;
@@ -855,8 +854,15 @@ void VigirManipulationController::sendCircularAffordance(const vigir_object_temp
     move_goal.extended_planning_options.rotation_angle                     = affordance.displacement;
     move_goal.extended_planning_options.pitch                              = affordance.pitch;
     move_goal.extended_planning_options.execute_incomplete_cartesian_plans = true;
-    move_goal.request.group_name                                           = this->planning_group_;
-    move_goal.request.planner_id                                           = this->planner_id_;
+
+    if ( use_drake_ik_ ) {
+        move_goal.request.group_name = "whole_body_group";
+        move_goal.request.planner_id = "drake";
+    }
+    else {
+        move_goal.request.group_name = this->planning_group_;
+    }
+
     move_goal.request.allowed_planning_time                                = 1.0;
     move_goal.request.num_planning_attempts                                = 1;
     move_goal.request.max_velocity_scaling_factor                          = affordance.speed/100.0;
@@ -919,8 +925,15 @@ void VigirManipulationController::sendCartesianAffordance(vigir_object_template_
     move_goal.extended_planning_options.allow_environment_collisions       = true;
     move_goal.extended_planning_options.keep_endeffector_orientation       = true;  //Cartesian Affordances don't care about end effector orientation
     move_goal.extended_planning_options.execute_incomplete_cartesian_plans = true;
-    move_goal.request.group_name                                           = this->planning_group_;
-    move_goal.request.planner_id                                           = this->planner_id_;
+
+    if ( use_drake_ik_ ) {
+        move_goal.request.group_name = "whole_body_group";
+        move_goal.request.planner_id = "drake";
+    }
+    else {
+        move_goal.request.group_name = this->planning_group_;
+    }
+
     move_goal.request.allowed_planning_time                                = 1.0;
     move_goal.request.num_planning_attempts                                = 1;
     move_goal.request.max_velocity_scaling_factor                          = affordance.speed/100.0;
@@ -1001,8 +1014,15 @@ void VigirManipulationController::sendFixedPoseAffordance(const vigir_object_tem
     move_goal.extended_planning_options.keep_endeffector_orientation       = false;
     move_goal.extended_planning_options.rotation_angle                     = affordance.displacement;
     move_goal.extended_planning_options.execute_incomplete_cartesian_plans = true;
-    move_goal.request.group_name                                           = this->planning_group_;
-    move_goal.request.planner_id                                           = this->planner_id_;
+
+    if ( use_drake_ik_ ) {
+        move_goal.request.group_name = "whole_body_group";
+        move_goal.request.planner_id = "drake";
+    }
+    else {
+        move_goal.request.group_name = this->planning_group_;
+    }
+
     move_goal.request.allowed_planning_time                                = 1.0;
     move_goal.request.num_planning_attempts                                = 1;
     move_goal.request.max_velocity_scaling_factor                          = affordance.speed/100.0;

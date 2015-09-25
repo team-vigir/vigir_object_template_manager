@@ -28,6 +28,7 @@
     <remap from="wrist_pose"           to="/flor/r_arm_current_pose" />
     <remap from="planner_status"       to="/grasp_planning/r_hand/status" />
     <remap from="use_torso"            to="/flor/ocs/ghost/state_use_torso" />
+	<remap from="use_drake_ik"         to="/flor/ocs/ghost/state_use_drake_ik" />
 </node>
 
 </launch>

@@ -42,6 +42,7 @@
 #include <std_msgs/Int8.h>
 #include <std_msgs/Float32.h>
 #include <std_msgs/UInt8.h>
+#include <std_msgs/Bool.h>
 
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/WrenchStamped.h>
@@ -152,8 +153,8 @@ namespace vigir_manipulation_controller {
     std::string                                hand_link_;       // left_palm or right_palm
     std::string                                hand_side_;       // left or right
     int                                        hand_id_;         // -1=left, 1=right
+    bool                                       use_drake_ik_;
     std::string                                planning_group_;
-    std::string                                planner_id_;
     char                                       last_template_stitch_id_;
 
     // Internal variables used by active controllers
