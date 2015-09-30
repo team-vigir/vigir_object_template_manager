@@ -30,7 +30,7 @@
     <remap from="wrist_pose"           to="/flor/l_arm_current_pose" />
     <remap from="planner_status"       to="/grasp_planning/l_hand/status" />
     <remap from="use_torso"            to="/flor/ocs/ghost/state_use_torso" />
-	<remap from="use_drake_ik"         to="/flor/ocs/ghost/state_use_drake_ik" />
+    <remap from="use_drake_ik"         to="/flor/ocs/ghost/state_use_drake_ik" />
 </node>
 
   <node name    = "start_left_controller"
@@ -39,6 +39,6 @@
         args    = "left_hand_traj_controller"  /><!--
         output  = "screen"    />-->
 
-  <node name="vt_hand_fake_joint_publisher" pkg="thor_vt_hand_grasp_controller" type="vt_hand_fake_joints_node" respawn="true" />
+  <!--<node name="vt_hand_fake_joint_publisher" pkg="thor_vt_hand_grasp_controller" type="vt_hand_fake_joints_node" respawn="true" />-->
 
 </launch>
