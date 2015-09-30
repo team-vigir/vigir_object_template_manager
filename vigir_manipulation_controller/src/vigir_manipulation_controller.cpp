@@ -56,7 +56,7 @@ void VigirManipulationController::initializeManipulationController(ros::NodeHand
 
     // which hand are we controlling
     if (!nhp.getParam("wrist_name", this->wrist_name_)){
-        ROS_ERROR(" Did not find wrist_name parameter - using r_hand as default");
+        ROS_WARN(" Did not find wrist_name parameter - using r_hand as default");
         this->wrist_name_ = "r_hand";
     }else
         ROS_INFO("Hand parameters received, hand: %s", this->wrist_name_.c_str());
@@ -197,7 +197,7 @@ void VigirManipulationController::initializeManipulationController(ros::NodeHand
     XmlRpc::XmlRpcValue   hand_T_marker;
 
     if (!nhp.getParam("/"+this->wrist_name_+"_tf/hand_T_marker", hand_T_marker))
-        ROS_ERROR(" Did not find /%s_tf/hand_T_marker parameter, setting to %s palm ", this->wrist_name_.c_str(), hand_side_.c_str());
+        ROS_WARN(" Did not find /%s_tf/hand_T_marker parameter, setting to %s palm ", this->wrist_name_.c_str(), hand_side_.c_str());
     else{
         hand_T_marker_.setOrigin(tf::Vector3(static_cast<double>(hand_T_marker[0]),static_cast<double>(hand_T_marker[1]),static_cast<double>(hand_T_marker[2])));
         hand_T_marker_.setRotation(tf::Quaternion(static_cast<double>(hand_T_marker[3]),static_cast<double>(hand_T_marker[4]),static_cast<double>(hand_T_marker[5]),static_cast<double>(hand_T_marker[6])));
