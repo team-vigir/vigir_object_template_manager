@@ -104,7 +104,7 @@ void VigirManipulationController::initializeManipulationController(ros::NodeHand
     wrist_target_pub_           = nh.advertise<geometry_msgs::PoseStamped>("wrist_target",          1, true);
     template_stitch_pose_pub_   = nh.advertise<geometry_msgs::PoseStamped>("template_stitch_pose",  1, true);
     wrist_plan_pub_             = nh.advertise<vigir_teleop_planning_msgs::PlanRequest>("wrist_plan",       1, true);
-    grasp_status_pub_           = nh.advertise<vigir_object_template_msgs::GraspStatus>("grasp_status",       1, true);
+    grasp_status_pub_           = nh.advertise<vigir_grasp_msgs::GraspStatus>("grasp_status",       1, true);
     template_mass_pub_          = nh.advertise<vigir_object_template_msgs::VigirHandMass>("hand_mass",         1, true);
     tactile_feedback_pub_       = nh.advertise<vigir_grasp_msgs::LinkState>("link_states",           1, true);
     circular_plan_request_pub_  = nh.advertise<vigir_teleop_planning_msgs::CircularMotionRequest>( "/flor/planning/upper_body/plan_circular_request",  1, false );
@@ -206,7 +206,7 @@ void VigirManipulationController::initializeManipulationController(ros::NodeHand
     hand_T_usability_ = hand_T_marker_;
 
     //initializing grasp status
-    grasp_status_.status = RobotStatusCodes::status(RobotStatusCodes::NO_ERROR, RobotStatusCodes::OK);
+    //grasp_status_.status = RobotStatusCodes::status(RobotStatusCodes::NO_ERROR, RobotStatusCodes::OK);
 
     wrist_T_template_.pose.orientation.x = 0;
     wrist_T_template_.pose.orientation.y = 0;
@@ -578,27 +578,27 @@ int VigirManipulationController::poseTransform(const tf::Transform &transform, g
     return 0;
 }
 
-void VigirManipulationController::setGraspStatus(const RobotStatusCodes::StatusCode &status, const RobotStatusCodes::StatusLevel &severity)
-{
-    if ((RobotStatusCodes::NO_ERROR == this->grasp_status_code_)  || (RobotStatusCodes::GRASP_CONTROLLER_OK == this->grasp_status_code_))
-    {
-        this->grasp_status_code_      = status;
-        this->grasp_status_severity_  = severity;
-    }
-    else
-    {
-        uint16_t current_code;
-        uint8_t  current_severity;
-        RobotStatusCodes::codes(this->grasp_status_code_, current_code, current_severity);
-        if (this->grasp_status_severity_ < severity)
-        {
-            ROS_DEBUG(" Overwriting grasp controller error code %d:%d with %d:%d", this->grasp_status_code_, this->grasp_status_severity_, status, severity);
-            this->grasp_status_code_      = status;
-            this->grasp_status_severity_  = severity;
-            return;
-        }
-    }
-}
+//void VigirManipulationController::setGraspStatus(const RobotStatusCodes::StatusCode &status, const RobotStatusCodes::StatusLevel &severity)
+//{
+//    if ((RobotStatusCodes::NO_ERROR == this->grasp_status_code_)  || (RobotStatusCodes::GRASP_CONTROLLER_OK == this->grasp_status_code_))
+//    {
+//        this->grasp_status_code_      = status;
+//        this->grasp_status_severity_  = severity;
+//    }
+//    else
+//    {
+//        uint16_t current_code;
+//        uint8_t  current_severity;
+//        RobotStatusCodes::codes(this->grasp_status_code_, current_code, current_severity);
+//        if (this->grasp_status_severity_ < severity)
+//        {
+//            ROS_DEBUG(" Overwriting grasp controller error code %d:%d with %d:%d", this->grasp_status_code_, this->grasp_status_severity_, status, severity);
+//            this->grasp_status_code_      = status;
+//            this->grasp_status_severity_  = severity;
+//            return;
+//        }
+//    }
+//}
 
 void VigirManipulationController::setLinkState(vigir_grasp_msgs::LinkState link_state){
     link_tactile_ = link_state;
@@ -618,28 +618,28 @@ void VigirManipulationController::updateWristTarget()
 /**
  * This function must be called to publish the grasp state machine status.
  */
-inline void VigirManipulationController::updateGraspStatus()
-{
+//inline void VigirManipulationController::updateGraspStatus()
+//{
 
-    uint16_t current_status = RobotStatusCodes::status(this->grasp_status_code_,this->grasp_status_severity_);
-    if (this->grasp_status_code_ == RobotStatusCodes::NO_ERROR)
-    {
-        // Assign a meaningful message to robot_status for annunciator window
-        this->grasp_status_code_ = RobotStatusCodes::GRASP_CONTROLLER_OK;
-    }
-    if (current_status != grasp_status_.status)
-    {
+//    uint16_t current_status = RobotStatusCodes::status(this->grasp_status_code_,this->grasp_status_severity_);
+//    if (this->grasp_status_code_ == RobotStatusCodes::NO_ERROR)
+//    {
+//        // Assign a meaningful message to robot_status for annunciator window
+//        this->grasp_status_code_ = RobotStatusCodes::GRASP_CONTROLLER_OK;
+//    }
+//    if (current_status != grasp_status_.status)
+//    {
 
-        ROS_INFO("   Update Grasp Status %d:%d  for %s", this->grasp_status_code_,this->grasp_status_severity_, this->wrist_name_.c_str());
-        grasp_status_.stamp  = ros::Time::now();
-        grasp_status_.status = current_status;
+//        ROS_INFO("   Update Grasp Status %d:%d  for %s", this->grasp_status_code_,this->grasp_status_severity_, this->wrist_name_.c_str());
+//        grasp_status_.stamp  = ros::Time::now();
+//        grasp_status_.status = current_status;
 
-        if (grasp_status_pub_)
-            grasp_status_pub_.publish(grasp_status_);
-        else
-            ROS_WARN("Invalid grasp status publisher");
-    }
-}
+//        if (grasp_status_pub_)
+//            grasp_status_pub_.publish(grasp_status_);
+//        else
+//            ROS_WARN("Invalid grasp status publisher");
+//    }
+//}
 
 inline void VigirManipulationController::updateTemplateMass()
 {
@@ -699,25 +699,25 @@ void VigirManipulationController::processTemplateMassData(const geometry_msgs::P
 
 void VigirManipulationController::handStatusCallback(const vigir_grasp_msgs::HandStatus &msg)
 {
-    {
-        boost::lock_guard<boost::mutex> guard(this->write_data_mutex_);
-        last_hand_status_msg_ = msg;
-    }
+//    {
+//        boost::lock_guard<boost::mutex> guard(this->write_data_mutex_);
+//        last_hand_status_msg_ = msg;
+//    }
 
-    switch(last_hand_status_msg_.hand_status ){
-    case 0: setGraspStatus(RobotStatusCodes::NO_ERROR , RobotStatusCodes::OK);
-        break;
-    case 1: setGraspStatus(RobotStatusCodes::GRASP_NO_APPENDAGE_CONTROL , RobotStatusCodes::WARNING);
-        break;
-    default: setGraspStatus(RobotStatusCodes::NO_ERROR , RobotStatusCodes::OK);
-        break;
-    }
+//    switch(last_hand_status_msg_.hand_status ){
+//    case 0: setGraspStatus(RobotStatusCodes::NO_ERROR , RobotStatusCodes::OK);
+//        break;
+//    case 1: setGraspStatus(RobotStatusCodes::GRASP_NO_APPENDAGE_CONTROL , RobotStatusCodes::WARNING);
+//        break;
+//    default: setGraspStatus(RobotStatusCodes::NO_ERROR , RobotStatusCodes::OK);
+//        break;
+//    }
 
-    this->updateGraspStatus();
-    this->processHandTactileData();
+//    this->updateGraspStatus();
+//    this->processHandTactileData();
 
-    if(tactile_feedback_pub_)
-        tactile_feedback_pub_.publish(link_tactile_);
+//    if(tactile_feedback_pub_)
+//        tactile_feedback_pub_.publish(link_tactile_);
 }
 
 void VigirManipulationController::requestInstantiatedGraspService(const uint16_t& requested_template_id){

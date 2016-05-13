@@ -50,6 +50,7 @@
 #include <vigir_grasp_msgs/GraspSelection.h>
 #include <vigir_grasp_msgs/TemplateSelection.h>
 #include <vigir_grasp_msgs/GraspState.h>
+#include <vigir_grasp_msgs/GraspStatus.h>
 #include <vigir_grasp_msgs/HandStatus.h>
 #include <vigir_teleop_planning_msgs/PlanRequest.h>
 #include <vigir_teleop_planning_msgs/CircularMotionRequest.h>
@@ -70,6 +71,7 @@
 #include <vigir_object_template_msgs/GetTemplateStateAndTypeInfo.h>
 #include <vigir_object_template_msgs/SetAttachedObjectTemplate.h>
 #include <vigir_object_template_msgs/Affordance.h>
+#include <vigir_object_template_msgs/VigirHandMass.h>
 #include <vigir_object_template_msgs/GetAffordanceInWristFrame.h>
 
 //#include <vigir_manipulation_planning/vigir_planning_interface/vigir_move_group_interface/include/moveit/vigir_move_group_interface/move_group.h>
@@ -110,8 +112,8 @@ namespace vigir_manipulation_controller {
 
   protected:
 
-   inline int16_t  getGraspStatus() const { return RobotStatusCodes::status(grasp_status_code_, grasp_status_severity_);}
-   void            setGraspStatus(const RobotStatusCodes::StatusCode& status, const RobotStatusCodes::StatusLevel& severity);
+//   inline int16_t  getGraspStatus() const { return RobotStatusCodes::status(grasp_status_code_, grasp_status_severity_);}
+//   void            setGraspStatus(const RobotStatusCodes::StatusCode& status, const RobotStatusCodes::StatusLevel& severity);
 
    void                        setLinkState(vigir_grasp_msgs::LinkState link_state);
    vigir_grasp_msgs::HandStatus getHandStatus() { return last_hand_status_msg_; }
@@ -165,9 +167,9 @@ namespace vigir_manipulation_controller {
     geometry_msgs::PoseStamped                 wrist_T_template_;
 
     //Grasp status message
-    vigir_object_template_msgs::GraspStatus    grasp_status_;
-    RobotStatusCodes::StatusCode               grasp_status_code_;      // Using RobotStatusCodes with severity
-    RobotStatusCodes::StatusLevel              grasp_status_severity_;
+    vigir_grasp_msgs::GraspStatus    grasp_status_;
+//    RobotStatusCodes::StatusCode               grasp_status_code_;      // Using RobotStatusCodes with severity
+//    RobotStatusCodes::StatusLevel              grasp_status_severity_;
 
     boost::mutex                               write_data_mutex_;
 
