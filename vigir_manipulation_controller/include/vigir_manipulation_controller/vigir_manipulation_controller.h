@@ -51,8 +51,6 @@
 #include <vigir_grasp_msgs/TemplateSelection.h>
 #include <vigir_grasp_msgs/GraspState.h>
 #include <vigir_grasp_msgs/HandStatus.h>
-#include "vigir_ocs_msgs/OCSRobotStatus.h"
-#include "vigir_ocs_msgs/RobotStatusCodes.h"
 #include <vigir_teleop_planning_msgs/PlanRequest.h>
 #include <vigir_teleop_planning_msgs/CircularMotionRequest.h>
 #include <vigir_teleop_planning_msgs/CartesianMotionRequest.h>
@@ -135,7 +133,6 @@ namespace vigir_manipulation_controller {
     vigir_grasp_msgs::HandStatus                last_hand_status_msg_;
     vigir_grasp_msgs::LinkState                 link_tactile_;
 
-    vigir_ocs_msgs::OCSRobotStatus              last_planner_status_msg_;
     geometry_msgs::PoseStamped                  last_wrist_pose_msg_;
 
     // Variables to store locally sensor data recieved from ROS interface
@@ -168,7 +165,7 @@ namespace vigir_manipulation_controller {
     geometry_msgs::PoseStamped                 wrist_T_template_;
 
     //Grasp status message
-    vigir_ocs_msgs::OCSRobotStatus             grasp_status_;
+    vigir_object_template_msgs::GraspStatus    grasp_status_;
     RobotStatusCodes::StatusCode               grasp_status_code_;      // Using RobotStatusCodes with severity
     RobotStatusCodes::StatusLevel              grasp_status_severity_;
 
