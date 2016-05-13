@@ -73,7 +73,7 @@
 #include <vigir_object_template_msgs/GetAffordanceInWristFrame.h>
 
 //#include <vigir_manipulation_planning/vigir_planning_interface/vigir_move_group_interface/include/moveit/vigir_move_group_interface/move_group.h>
-#include <moveit/vigir_move_group_interface/move_group.h>
+//#include <moveit/vigir_move_group_interface/move_group.h>
 
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/robot_model/robot_model.h>
