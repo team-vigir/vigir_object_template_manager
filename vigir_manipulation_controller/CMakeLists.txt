@@ -16,6 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
   trajectory_msgs
   vigir_object_template_msgs
   vigir_planning_msgs
+  vigir_teleop_planning_msgs
   actionlib
 )
 
@@ -96,7 +97,7 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES vigir_manipulation_controller
-  CATKIN_DEPENDS actionlib vigir_grasp_msgs geometric_shapes moveit_core moveit_msgs roscpp urdf tf tf_conversions trajectory_msgs vigir_object_template_msgs vigir_planning_msgs
+  CATKIN_DEPENDS actionlib vigir_grasp_msgs geometric_shapes moveit_core moveit_msgs roscpp urdf tf tf_conversions trajectory_msgs vigir_object_template_msgs vigir_planning_msgs vigir_teleop_planning_msgs
 #  DEPENDS system_lib
 )
 
