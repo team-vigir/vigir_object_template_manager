@@ -20,7 +20,6 @@
   <build_depend>tf_conversions</build_depend>
   <build_depend>trajectory_msgs</build_depend>
   <build_depend>vigir_object_template_msgs</build_depend>
-  <build_depend>vigir_planning_interface</build_depend>
   <build_depend>vigir_planning_msgs</build_depend>
   <build_depend>actionlib</build_depend>
   <run_depend>vigir_grasp_msgs</run_depend>
@@ -33,7 +32,6 @@
   <run_depend>tf_conversions</run_depend>
   <run_depend>trajectory_msgs</run_depend>
   <run_depend>vigir_object_template_msgs</run_depend>
-  <run_depend>vigir_planning_interface</run_depend>
   <run_depend>vigir_planning_msgs</run_depend>
   <run_depend>actionlib</run_depend>
 
