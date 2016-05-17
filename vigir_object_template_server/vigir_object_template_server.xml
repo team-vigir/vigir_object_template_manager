@@ -1,0 +1,8 @@
+<!-- OpenNI driver nodelet publisher -->
+<library path="libvigir_object_template_server">
+  <class name="vigir_object_template_server/ObjectTemplateServer" type="object_template_server::ObjectTemplateServer" base_class_type="nodelet::Nodelet">
+    <description>
+      Object Template Server
+    </description>
+  </class>
+</library>
