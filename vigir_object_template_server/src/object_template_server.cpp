@@ -48,15 +48,15 @@ void ObjectTemplateServer::onInit()
     grasp_selected_state_pub_  = nh_out.advertise<vigir_grasp_msgs::GraspState>( "grasp_selected_state", 5, false );
 
     // then, subscribe to the resulting cropped image
-    template_add_sub_            = nh_out.subscribe( "add", 5, &ObjectTemplateServer::addTemplateCb, this );
-    template_remove_sub_         = nh_out.subscribe( "remove", 5, &ObjectTemplateServer::removeTemplateCb, this );
-    template_update_sub_         = nh_out.subscribe( "update", 5, &ObjectTemplateServer::updateTemplateCb, this );
-    template_snap_sub_           = nh_out.subscribe( "snap", 5, &ObjectTemplateServer::snapTemplateCb, this );
-    template_match_feedback_sub_ = nh_out.subscribe( "template_match_feedback", 5, &ObjectTemplateServer::templateMatchFeedbackCb, this );
-    grasp_state_feedback_sub_    = nh_out.subscribe( "grasp_state_feedback", 5, &ObjectTemplateServer::graspStateFeedbackCb, this );
-    stand_update_sub_ = nh_out.subscribe("stand_update", 5, &ObjectTemplateServer::updateStandPose, this);
-    affordance_update_sub_ = nh_out.subscribe("affordance_update", 5, &ObjectTemplateServer::updateAffordance, this);
-    grasp_update_sub_ = nh_out.subscribe("grasp_update", 5, &ObjectTemplateServer::updateGrasp, this);
+    template_add_sub_            = nh_out.subscribe( "add", 5,                     &ObjectTemplateServer::addTemplateCb,           this );
+    template_remove_sub_         = nh_out.subscribe( "remove", 5,                  &ObjectTemplateServer::removeTemplateCb,        this );
+    template_update_sub_         = nh_out.subscribe( "update", 5,                  &ObjectTemplateServer::updateTemplateCb,        this );
+    template_snap_sub_           = nh_out.subscribe( "snap", 5,                    &ObjectTemplateServer::snapTemplateCb,          this );
+    template_selection_sub_      = nh_out.subscribe( "template_selection", 5,      &ObjectTemplateServer::templateSelectionCb,     this );
+    grasp_state_feedback_sub_    = nh_out.subscribe( "grasp_state_feedback", 5,    &ObjectTemplateServer::graspStateFeedbackCb,    this );
+    stand_update_sub_            = nh_out.subscribe( "stand_update", 5,            &ObjectTemplateServer::updateStandPose,         this );
+    affordance_update_sub_       = nh_out.subscribe( "affordance_update", 5,       &ObjectTemplateServer::updateAffordance,        this );
+    grasp_update_sub_            = nh_out.subscribe( "grasp_update", 5,            &ObjectTemplateServer::updateGrasp,             this );
 
     // Which mode are we using
     this->master_mode_ = true;
@@ -86,6 +86,7 @@ void ObjectTemplateServer::onInit()
 
     //Template Services
     template_info_server_        = nh_out.advertiseService("/template_info", &ObjectTemplateServer::templateInfoSrv, this);
+    inst_template_info_server_   = nh_out.advertiseService("/instantiated_template_info", &ObjectTemplateServer::instantiatedTemplateInfoSrv, this);
     grasp_info_server_           = nh_out.advertiseService("/grasp_info", &ObjectTemplateServer::graspInfoSrv, this);
     inst_grasp_info_server_      = nh_out.advertiseService("/instantiated_grasp_info", &ObjectTemplateServer::instantiatedGraspInfoSrv, this);
     stitch_object_server_        = nh_out.advertiseService("/stitch_object_template", &ObjectTemplateServer::stitchObjectTemplateSrv, this);
@@ -102,9 +103,9 @@ void ObjectTemplateServer::onInit()
     ROS_INFO(" Start reading database files");
 
     //Get hand parameters from server
-    left_wrist_link_ = "l_hand";
-    left_palm_link_  = "l_palm";
-    left_hand_group_ = "l_hand_group";
+    left_wrist_link_  = "l_hand";
+    left_palm_link_   = "l_palm";
+    left_hand_group_  = "l_hand_group";
     right_wrist_link_ = "r_hand";
     right_palm_link_  = "r_palm";
     right_hand_group_ = "r_hand_group";
@@ -123,32 +124,35 @@ void ObjectTemplateServer::onInit()
     if(!nhp.getParam("/right_hand_group", right_hand_group_))
         ROS_WARN("No right hand group defined, using r_hand_group as default");
 
-    //LOADING ROBOT MODEL FOR JOINT NAMES
-    robot_model_loader_.reset(new robot_model_loader::RobotModelLoader("robot_description"));
-    robot_model_ = robot_model_loader_->getModel();
-
-    if (!nhp.getParam("/ot_library", this->ot_filename_))
-        ROS_ERROR(" Did not find Object Template Library parameter /ot_library");
+    //LOAD OBJECT TEMPLATE LIBRARY
+    if (!nhp.getParam("/object_templates/ot_library", this->ot_filename_))
+        ROS_ERROR(" Did not find Object Template Library parameter /object_templates/ot_library");
     else
         ObjectTemplateServer::loadObjectTemplateDatabaseXML(this->ot_filename_);
 
-    if (!nhp.getParam("/r_hand_library", this->r_grasps_filename_))
-        ROS_WARN(" Did not find Right Grasp Library parameter /r_hand_library, not using right grasps");
-    else
-        ObjectTemplateServer::loadGraspDatabaseXML(this->r_grasps_filename_, "right");
+    //LOADING ROBOT MODEL FOR JOINT NAMES
+    if (!nh.hasParam("/robot_description"))
+        ROS_ERROR(" Did not find robot_description parameter! Not loading grasp library nor robot library");
+    else{
+        robot_model_loader_.reset(new robot_model_loader::RobotModelLoader("robot_description"));
+        robot_model_ = robot_model_loader_->getModel();
 
-    if (!nhp.getParam("/l_hand_library", this->l_grasps_filename_))
-        ROS_WARN(" Did not find Left Grasp Library parameter /l_hand_library, not using right grasps");
-    else
-        ObjectTemplateServer::loadGraspDatabaseXML(this->l_grasps_filename_, "left");
+        if (!nhp.getParam("/object_templates/r_hand_library", this->r_grasps_filename_))
+            ROS_WARN(" Did not find Right Grasp Library parameter /object_templates/r_hand_library, not using right grasps");
+        else
+            ObjectTemplateServer::loadGraspDatabaseXML(this->r_grasps_filename_, "right");
 
-    // Load the robot specific ghost_poses database
-    if (!nhp.getParam("/stand_poses_library", this->stand_filename_))
-        ROS_WARN(" Did not find Stand Poses parameter /stand_poses_library, not using stand poses for robot");
-    else
-        ObjectTemplateServer::loadStandPosesDatabaseXML(this->stand_filename_);
+        if (!nhp.getParam("/object_templates/l_hand_library", this->l_grasps_filename_))
+            ROS_WARN(" Did not find Left Grasp Library parameter object_templates//l_hand_library, not using right grasps");
+        else
+            ObjectTemplateServer::loadGraspDatabaseXML(this->l_grasps_filename_, "left");
 
-
+        // Load the robot specific ghost_poses database
+        if (!nhp.getParam("/object_templates/stand_poses_library", this->stand_filename_))
+            ROS_WARN(" Did not find Stand Poses parameter /object_templates/stand_poses_library, not using stand poses for robot");
+        else
+            ObjectTemplateServer::loadStandPosesDatabaseXML(this->stand_filename_);
+    }
 
     id_counter_ = 0;
 
@@ -343,7 +347,7 @@ void ObjectTemplateServer::graspStateFeedbackCb(const vigir_grasp_msgs::GraspSta
     std::cout << "Grasp control state" << (msg->grasp_state.data & 0x0f) << std::endl;
 }
 
-void ObjectTemplateServer::templateMatchFeedbackCb(const vigir_grasp_msgs::TemplateSelection::ConstPtr msg)
+void ObjectTemplateServer::templateSelectionCb(const vigir_grasp_msgs::TemplateSelection::ConstPtr msg)
 {
     boost::recursive_mutex::scoped_lock lock(template_list_mutex_);
 
@@ -1136,8 +1140,55 @@ void ObjectTemplateServer::gripperTranslationToPreGraspPose(geometry_msgs::Pose&
     pose.position.z += vec_out.getOrigin().getZ();
 }
 
-bool ObjectTemplateServer::templateInfoSrv(vigir_object_template_msgs::GetTemplateStateAndTypeInfo::Request& req,
-                                      vigir_object_template_msgs::GetTemplateStateAndTypeInfo::Response& res)
+bool ObjectTemplateServer::templateInfoSrv(vigir_object_template_msgs::GetTemplateInfo::Request& req,
+                                      vigir_object_template_msgs::GetTemplateInfo::Response& res)
+{
+    boost::recursive_mutex::scoped_lock lock_template_list(template_list_mutex_);
+
+    /*Fill in the blanks of the response "res"
+     * with the info of the template id in the request "req"
+    */
+    if(object_template_map_.size() > 0){
+
+        res.template_type_information.template_type  = object_template_map_[req.template_type].type;
+        res.template_type_information.type_name      = object_template_map_[req.template_type].name;
+        res.template_type_information.mass           = object_template_map_[req.template_type].mass;
+        res.template_type_information.center_of_mass = object_template_map_[req.template_type].com;
+        res.template_type_information.b_min          = object_template_map_[req.template_type].b_min;
+        res.template_type_information.b_max          = object_template_map_[req.template_type].b_max;
+
+        int i=0;
+        for (std::map<unsigned int,moveit_msgs::Grasp>::iterator it2  = object_template_map_[req.template_type].grasps.begin();
+                                                                 it2 != object_template_map_[req.template_type].grasps.end();
+                                                                 ++it2, i++){
+            res.template_type_information.grasps.push_back(it2->second);
+        }
+        i=0;
+        for (std::map<unsigned int,vigir_object_template_msgs::StandPose>::iterator it2  = object_template_map_[req.template_type].stand_poses.begin();
+                                                                         it2 != object_template_map_[req.template_type].stand_poses.end();
+                                                                         ++it2, i++){
+            res.template_type_information.stand_poses.push_back(it2->second);
+        }
+        i=0;
+        for (std::map<unsigned int,vigir_object_template_msgs::Affordance>::iterator it2  = object_template_map_[req.template_type].affordances.begin();
+                                                                         it2 != object_template_map_[req.template_type].affordances.end();
+                                                                         ++it2, i++){
+            res.template_type_information.affordances.push_back(it2->second);
+        }
+        i=0;
+        for (std::map<unsigned int,vigir_object_template_msgs::Usability>::iterator it2  = object_template_map_[req.template_type].usabilities.begin();
+                                                                         it2 != object_template_map_[req.template_type].usabilities.end();
+                                                                         ++it2, i++){
+            res.template_type_information.usabilities.push_back(it2->second);
+        }
+        return true;
+    }
+    ROS_ERROR("OBJECT LIBRARY IS EMPTY!");
+    return false;
+}
+
+bool ObjectTemplateServer::instantiatedTemplateInfoSrv(vigir_object_template_msgs::GetInstantiatedTemplateStateAndTypeInfo::Request& req,
+                                      vigir_object_template_msgs::GetInstantiatedTemplateStateAndTypeInfo::Response& res)
 {
     boost::recursive_mutex::scoped_lock lock_template_list(template_list_mutex_);
 
@@ -1146,19 +1197,19 @@ bool ObjectTemplateServer::templateInfoSrv(vigir_object_template_msgs::GetTempla
     */
 
     //Find the template
-	unsigned int index = 0;
+    unsigned int index = 0;
     unsigned int template_type;
-	for(; index < template_id_list_.size(); index++) {
+    for(; index < template_id_list_.size(); index++) {
         if(template_id_list_[index] == req.template_id){
             template_type = template_type_list_[index];
             ROS_INFO("Template ID found in server, index: %d, list: %d, requested: %d",index, template_id_list_[index], req.template_id);
             break;
-		}
+        }
     }
 
     if (index >= template_id_list_.size()){
         ROS_ERROR("Service requested template ID %d when no such template has been instantiated. Callback returning false.",req.template_id);
-		return false;
+        return false;
     }
 
 
@@ -1176,7 +1227,7 @@ bool ObjectTemplateServer::templateInfoSrv(vigir_object_template_msgs::GetTempla
     res.template_type_information.b_max          = object_template_map_[template_type].b_max;
     res.template_type_information.b_min          = object_template_map_[template_type].b_min;
 
-	//Transfer all known grasps to response
+    //Transfer all known grasps to response
     res.template_type_information.grasps.clear();
     for (std::map<unsigned int,moveit_msgs::Grasp>::iterator it =  object_template_map_[template_type].grasps.begin();
                                                              it != object_template_map_[template_type].grasps.end();
@@ -1286,8 +1337,8 @@ bool ObjectTemplateServer::templateInfoSrv(vigir_object_template_msgs::GetTempla
         }
     }
 
-	//Compose a mesh marker
-	res.template_type_information.geometry_marker.header.frame_id = "/world";
+    //Compose a mesh marker
+    res.template_type_information.geometry_marker.header.frame_id = "/world";
     res.template_type_information.geometry_marker.header.stamp    = ros::Time::now();
     res.template_type_information.geometry_marker.type            = res.template_type_information.geometry_marker.MESH_RESOURCE;
     res.template_type_information.geometry_marker.action          = res.template_type_information.geometry_marker.ADD;
@@ -1493,7 +1544,7 @@ bool ObjectTemplateServer::stitchObjectTemplateSrv(vigir_object_template_msgs::S
         return false;
     }
 
-    std::string mesh_path = "package://vigir_template_library/object_templates/"+ mesh_name + ".ply";
+    std::string mesh_path = "package://vigir_template_library/object_library/"+ mesh_name + ".ply";
     ROS_INFO("Requesting mesh_path: %s", mesh_path.c_str());
 
 
@@ -1824,11 +1875,11 @@ void ObjectTemplateServer::addCollisionObject(int type, int index, std::string m
     collision_object.id = boost::to_string((unsigned int)index);
     collision_object.header.frame_id = "/world";
 
-    std::string path = ros::package::getPath("vigir_template_library") + "/object_templates/" + mesh_name + ".ply";
+    std::string path = ros::package::getPath("vigir_template_library") + "/object_library/" + mesh_name + ".ply";
 
     std::ifstream infile(path.c_str());
     if(infile.good()){
-        std::string mesh_path = "package://vigir_template_library/object_templates/"+mesh_name + ".ply";
+        std::string mesh_path = "package://vigir_template_library/object_library/"+mesh_name + ".ply";
         ROS_INFO("1 mesh_path: %s", mesh_path.c_str());
 
         shapes::Mesh* shape = shapes::createMeshFromResource(mesh_path);

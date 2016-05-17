@@ -58,7 +58,8 @@
 #include <vigir_grasp_msgs/GraspSelection.h>
 #include <vigir_grasp_msgs/GraspState.h>
 #include <vigir_grasp_msgs/TemplateSelection.h>
-#include <vigir_object_template_msgs/GetTemplateStateAndTypeInfo.h>
+#include <vigir_object_template_msgs/GetTemplateInfo.h>
+#include <vigir_object_template_msgs/GetInstantiatedTemplateStateAndTypeInfo.h>
 #include <vigir_object_template_msgs/GetGraspInfo.h>
 #include <vigir_object_template_msgs/GetInstantiatedGraspInfo.h>
 #include <vigir_object_template_msgs/SetAttachedObjectTemplate.h>
@@ -128,7 +129,7 @@ namespace object_template_server
         void detachTemplateFwdCb(const vigir_object_template_msgs::TemplateStateInfo::ConstPtr msg);
         void snapTemplateCb(const vigir_grasp_msgs::TemplateSelection::ConstPtr msg);
         void graspStateFeedbackCb(const vigir_grasp_msgs::GraspState::ConstPtr msg);
-        void templateMatchFeedbackCb(const vigir_grasp_msgs::TemplateSelection::ConstPtr msg);
+        void templateSelectionCb(const vigir_grasp_msgs::TemplateSelection::ConstPtr msg);
         void publishTemplateList();
         void loadObjectTemplateDatabaseXML(std::string& file_name);
         void loadGraspDatabaseXML(std::string& file_name, std::string hand_side);
@@ -138,8 +139,11 @@ namespace object_template_server
         int  staticTransform(geometry_msgs::Pose& palm_pose, tf::Transform gp_T_hand);
         void gripperTranslationToPreGraspPose(geometry_msgs::Pose& pose, moveit_msgs::GripperTranslation& trans);
         void timerCallback(const ros::TimerEvent& event);
-        bool templateInfoSrv(vigir_object_template_msgs::GetTemplateStateAndTypeInfo::Request& req,
-                             vigir_object_template_msgs::GetTemplateStateAndTypeInfo::Response& res);
+        bool templateInfoSrv(vigir_object_template_msgs::GetTemplateInfo::Request& req,
+                             vigir_object_template_msgs::GetTemplateInfo::Response& res);
+
+        bool instantiatedTemplateInfoSrv(vigir_object_template_msgs::GetInstantiatedTemplateStateAndTypeInfo::Request& req,
+                             vigir_object_template_msgs::GetInstantiatedTemplateStateAndTypeInfo::Response& res);
 
         bool graspInfoSrv(vigir_object_template_msgs::GetGraspInfo::Request& req,
                           vigir_object_template_msgs::GetGraspInfo::Response& res);
@@ -170,7 +174,7 @@ namespace object_template_server
         ros::Subscriber template_add_sub_;
         ros::Subscriber template_remove_sub_;
         ros::Subscriber grasp_state_feedback_sub_;
-        ros::Subscriber template_match_feedback_sub_;
+        ros::Subscriber template_selection_sub_;
         ros::Subscriber template_snap_sub_;
         ros::Publisher  template_list_pub_;
         ros::Publisher  grasp_selected_pub_;
@@ -192,6 +196,7 @@ namespace object_template_server
         ros::Subscriber grasp_update_sub_;
 
         ros::ServiceServer template_info_server_;
+        ros::ServiceServer inst_template_info_server_;
         ros::ServiceServer grasp_info_server_;
         ros::ServiceServer inst_grasp_info_server_;
         ros::ServiceServer stitch_object_server_;
