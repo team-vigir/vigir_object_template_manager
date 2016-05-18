@@ -85,18 +85,18 @@ void ObjectTemplateServer::onInit()
 
 
     //Template Services
-    template_info_server_        = nh_out.advertiseService("/template_info", &ObjectTemplateServer::templateInfoSrv, this);
-    inst_template_info_server_   = nh_out.advertiseService("/instantiated_template_info", &ObjectTemplateServer::instantiatedTemplateInfoSrv, this);
-    grasp_info_server_           = nh_out.advertiseService("/grasp_info", &ObjectTemplateServer::graspInfoSrv, this);
-    inst_grasp_info_server_      = nh_out.advertiseService("/instantiated_grasp_info", &ObjectTemplateServer::instantiatedGraspInfoSrv, this);
-    stitch_object_server_        = nh_out.advertiseService("/stitch_object_template", &ObjectTemplateServer::stitchObjectTemplateSrv, this);
-    detach_object_server_        = nh_out.advertiseService("/detach_object_template", &ObjectTemplateServer::detachObjectTemplateSrv, this);
-    usability_pose_server_       = nh_out.advertiseService("/usability_pose", &ObjectTemplateServer::usabilityPoseSrv, this);
+    template_info_server_      = nh_out.advertiseService("/template_info", &ObjectTemplateServer::templateInfoSrv, this);
+    inst_template_info_server_ = nh_out.advertiseService("/instantiated_template_info", &ObjectTemplateServer::instantiatedTemplateInfoSrv, this);
+    grasp_info_server_         = nh_out.advertiseService("/grasp_info", &ObjectTemplateServer::graspInfoSrv, this);
+    inst_grasp_info_server_    = nh_out.advertiseService("/instantiated_grasp_info", &ObjectTemplateServer::instantiatedGraspInfoSrv, this);
+    stitch_object_server_      = nh_out.advertiseService("/stitch_object_template", &ObjectTemplateServer::stitchObjectTemplateSrv, this);
+    detach_object_server_      = nh_out.advertiseService("/detach_object_template", &ObjectTemplateServer::detachObjectTemplateSrv, this);
+    usability_pose_server_     = nh_out.advertiseService("/usability_pose", &ObjectTemplateServer::usabilityPoseSrv, this);
 
     //Planing scene publishers
-    co_pub_                      = nh_out.advertise<moveit_msgs::CollisionObject>("/collision_object", 1, false);
-    aco_pub_                     = nh_out.advertise<moveit_msgs::AttachedCollisionObject>("/attached_collision_object", 1, false);
-    planning_scene_diff_pub_     = nh_out.advertise<moveit_msgs::PlanningScene>("/move_group/monitored_planning_scene", 1, false);
+    co_pub_                    = nh_out.advertise<moveit_msgs::CollisionObject>("/collision_object", 1, false);
+    aco_pub_                   = nh_out.advertise<moveit_msgs::AttachedCollisionObject>("/attached_collision_object", 1, false);
+    planning_scene_diff_pub_   = nh_out.advertise<moveit_msgs::PlanningScene>("/move_group/monitored_planning_scene", 1, false);
 
 
 
