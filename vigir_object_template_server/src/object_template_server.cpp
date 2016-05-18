@@ -978,7 +978,7 @@ void ObjectTemplateServer::loadObjectTemplateDatabaseXML(std::string& file_name)
                     usability.name = pUsability->Attribute("name");
                 else{
                     ROS_WARN("Usability ID: %d has no name attribute, setting to usability_%d", usability.id, usability.id);
-                    usability.name = "usability_" + boost::to_string(usability.id);
+                    usability.name = "usability_" + boost::to_string(pUsability->Attribute("id"));
                 }
 
                 object_template.usabilities.insert(std::pair<unsigned int,vigir_object_template_msgs::Usability>(usability.id, usability));
