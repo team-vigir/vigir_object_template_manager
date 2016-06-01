@@ -68,7 +68,7 @@
 #include <trajectory_msgs/JointTrajectory.h>
 
 #include <vigir_object_template_msgs/GetInstantiatedGraspInfo.h>
-#include <vigir_object_template_msgs/GetTemplateStateAndTypeInfo.h>
+#include <vigir_object_template_msgs/GetInstantiatedTemplateStateAndTypeInfo.h>
 #include <vigir_object_template_msgs/SetAttachedObjectTemplate.h>
 #include <vigir_object_template_msgs/Affordance.h>
 #include <vigir_object_template_msgs/VigirHandMass.h>
@@ -154,7 +154,7 @@ namespace vigir_manipulation_controller {
 
     // Internal variables used by active controllers
     vigir_object_template_msgs::GetInstantiatedGraspInfoResponse last_grasp_res_;
-    vigir_object_template_msgs::GetTemplateStateAndTypeInfo      template_srv_;
+    vigir_object_template_msgs::GetInstantiatedTemplateStateAndTypeInfo      template_srv_;
 
     tf::Transform                              palmStitch_T_hand_;
     tf::Transform                              hand_T_palm_;
