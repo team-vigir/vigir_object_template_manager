@@ -147,7 +147,8 @@ namespace vigir_manipulation_controller {
     std::string                                joint_group_;     // left_hand or right_hand
     std::string                                hand_link_;       // left_palm or right_palm
     std::string                                hand_side_;       // left or right
-    int                                        hand_id_;         // -1=left, 1=right
+    int                                        hand_id_;         // -1=left, 1=right    
+    int                                        eef_idx_;         // 0, 1, 2, ...
     bool                                       use_drake_ik_;
     std::string                                planning_group_;
     char                                       last_template_stitch_id_;

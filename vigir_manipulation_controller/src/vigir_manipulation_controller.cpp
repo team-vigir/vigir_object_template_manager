@@ -54,36 +54,64 @@ void VigirManipulationController::initializeManipulationController(ros::NodeHand
         return;
     }
 
-    // which hand are we controlling
-    if (!nhp.getParam("wrist_name", this->wrist_name_)){
-        ROS_WARN(" Did not find wrist_name parameter - using r_hand as default");
-        this->wrist_name_ = "r_hand";
+    if (!nhp.getParam("eef_idx", this->eef_idx_)){
+        ROS_WARN(" Did not find hand_idx parameter - using 0 \"left\" as default");
+        this->eef_idx_ = 0;
     }else
-        ROS_INFO("Hand parameters received, hand: %s", this->wrist_name_.c_str());
-
-    // which joint_group are we controlling
-    if (!nhp.getParam("hand_link", this->hand_link_)){
-        ROS_WARN(" Did not find hand_link parameter, assuming no end-effector is being used.");
-        this->hand_link_ = "right_palm";
-    }else
-        ROS_INFO("Hand link parameters received, hand: %s", this->hand_link_.c_str());
-
-    // which joint_group are we controlling
-    if (!nhp.getParam("joint_group", this->joint_group_)){
-        ROS_WARN(" Did not find joint_group parameter - assuming end-effector has no joints");
-        this->joint_group_ = "right_hand";
-    }else
-        ROS_INFO("Joint group parameters received, hand: %s", this->joint_group_.c_str());
+        ROS_INFO("Hand index parameters received, hand index: %d", this->eef_idx_);
 
 
-
-    this->hand_id_            = 1;
-    this->hand_side_          = "right";
-    this->planning_group_     = "r_arm_group";
-    if ("l_hand" == this->wrist_name_){
+    if (0 == this->eef_idx_){
         this->hand_id_        = -1;
         this->hand_side_      = "left";
         this->planning_group_ = "l_arm_group";
+
+        // which hand are we controlling
+        if (!nhp.getParam("/left_wrist_link", this->wrist_name_)){
+            ROS_WARN(" Did not find left_wrist_link parameter - using l_hand as default");
+            this->wrist_name_ = "l_hand";
+        }else
+            ROS_INFO("Hand parameters received, hand: %s", this->wrist_name_.c_str());
+
+        // which joint_group are we controlling
+        if (!nhp.getParam("/left_palm_link", this->hand_link_)){
+            ROS_WARN(" Did not find left_palm_link parameter, assuming no end-effector is being used.");
+            this->hand_link_ = "left_palm";
+        }else
+            ROS_INFO("Hand link parameters received, hand: %s", this->hand_link_.c_str());
+
+        // which joint_group are we controlling
+        if (!nhp.getParam("/left_hand_group", this->joint_group_)){
+            ROS_WARN(" Did not find left_hand_group parameter - assuming end-effector has no joints");
+            this->joint_group_ = "left_hand";
+        }else
+            ROS_INFO("Joint group parameters received, hand: %s", this->joint_group_.c_str());
+
+    }else{
+        this->hand_id_            = 1;
+        this->hand_side_          = "right";
+        this->planning_group_     = "r_arm_group";
+
+        // which hand are we controlling
+        if (!nhp.getParam("/right_wrist_link", this->wrist_name_)){
+            ROS_WARN(" Did not find right_wrist_link parameter - using r_hand as default");
+            this->wrist_name_ = "r_hand";
+        }else
+            ROS_INFO("Hand parameters received, hand: %s", this->wrist_name_.c_str());
+
+        // which joint_group are we controlling
+        if (!nhp.getParam("/right_palm_link", this->hand_link_)){
+            ROS_WARN(" Did not find right_palm_link parameter, assuming no end-effector is being used.");
+            this->hand_link_ = "right_palm";
+        }else
+            ROS_INFO("Hand link parameters received, hand: %s", this->hand_link_.c_str());
+
+        // which joint_group are we controlling
+        if (!nhp.getParam("/right_hand_group", this->joint_group_)){
+            ROS_WARN(" Did not find joint_group parameter - assuming end-effector has no joints");
+            this->joint_group_ = "right_hand";
+        }else
+            ROS_INFO("Joint group parameters received, hand: %s", this->joint_group_.c_str());
     }
 
     this->use_drake_ik_ = false;

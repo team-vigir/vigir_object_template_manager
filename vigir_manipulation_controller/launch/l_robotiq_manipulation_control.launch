@@ -7,9 +7,7 @@
 <!-- -->
 <node name="left_vigir_manipulation_controller"  pkg="vigir_robotiq_grasp_controller" type="vigir_robotiq_grasp_controller_node" respawn="true" output="screen"><!--  launch-prefix="xterm -e gdb -ex r"-->
 
-    <param name="wrist_name"  value="l_hand" />      <!--Last arm link name-->
-    <param name="hand_link"   value="left_palm"  />  <!--First hand link name-->
-    <param name="joint_group" value="left_hand"  />  <!--Hand joint group specified in SRDF-->
+    <param name="eef_idx"  value="0" />      <!-- Index of the end effector "left" -->
 
     <remap from="template_stitch_pose" to="/manipulation_control/l_hand/template_stitch_pose" />
     <remap from="template_stitch"      to="/manipulation_control/l_hand/template_stitch_request" />
@@ -35,8 +33,8 @@
 </node>
 
 <node name="left_robotiq_fake_joint_publisher"  pkg="vigir_robotiq_grasp_controller" type="robotiq_fake_joints_node">
-<param name="hand_prefix" value="left" />
-<param name="fake_time"   value="120"/>
+    <param name="hand_prefix" value="left" />
+    <param name="fake_time"   value="120"/>
 </node>
 
 </launch>
