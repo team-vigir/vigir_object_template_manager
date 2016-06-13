@@ -1722,7 +1722,7 @@ bool ObjectTemplateServer::usabilityPoseSrv(vigir_object_template_msgs::GetUsabi
         return false;
     }else{
         res.wrist_usability.header.frame_id = template_last_pose_list_[index].header.frame_id;
-        if(template_last_pose_list_[index].header.frame_id == "l_hand")
+        if(template_last_pose_list_[index].header.frame_id == left_wrist_link_)
             tf::poseTFToMsg(palm_T_lhand_.inverse(),res.wrist_usability.pose);
         else
             tf::poseTFToMsg(palm_T_rhand_.inverse(),res.wrist_usability.pose);

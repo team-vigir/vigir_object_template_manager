@@ -417,7 +417,7 @@ void VigirManipulationController::moveToPoseCallback(const vigir_grasp_msgs::Gra
                 ROS_ERROR_STREAM("Template server response id: " << last_grasp_res_.grasp_information.grasps[index].id << " while searching for id: " << grasp.grasp_id.data);
             else{
                 this->wrist_target_pose_.planning_group                          = planning_group_;
-                this->wrist_target_pose_.target_link_name                        = (hand_id_ > 0) ? "r_hand" : "l_hand";
+                this->wrist_target_pose_.target_link_name                        = wrist_name_;
                 this->wrist_target_pose_.use_environment_obstacle_avoidance      = true;
                 if(grasp.final_pose){
                     this->wrist_target_pose_.pose = grasp_pose;
@@ -832,10 +832,7 @@ void VigirManipulationController::sendFinalGrasp(const geometry_msgs::PoseStampe
     move_goal.extended_planning_options.target_frame = final_grasp.header.frame_id;
     move_goal.extended_planning_options.target_poses.push_back(final_grasp.pose);
 
-    if ( hand_id_> 0 )
-        move_goal.extended_planning_options.target_link_names.push_back("r_hand");
-    else
-        move_goal.extended_planning_options.target_link_names.push_back("l_hand");
+    move_goal.extended_planning_options.target_link_names.push_back(wrist_name_);
 
     move_action_client.sendGoal(move_goal);
 
@@ -916,10 +913,7 @@ void VigirManipulationController::sendCircularAffordance(const vigir_object_temp
 
     move_goal.extended_planning_options.target_poses.push_back(affordance.waypoints[0].pose);
 
-    if ( hand_id_> 0 )
-        move_goal.extended_planning_options.target_link_names.push_back("r_hand");
-    else
-        move_goal.extended_planning_options.target_link_names.push_back("l_hand");
+    move_goal.extended_planning_options.target_link_names.push_back(wrist_name_);
 
     move_action_client.sendGoal(move_goal);
 
@@ -1005,10 +999,7 @@ void VigirManipulationController::sendCartesianAffordance(vigir_object_template_
     move_goal.extended_planning_options.target_frame = this->wrist_name_;
     move_goal.extended_planning_options.target_poses.push_back(affordance.waypoints[0].pose);
 
-    if ( hand_id_> 0 )
-        move_goal.extended_planning_options.target_link_names.push_back("r_hand");
-    else
-        move_goal.extended_planning_options.target_link_names.push_back("l_hand");
+    move_goal.extended_planning_options.target_link_names.push_back(wrist_name_);
 
     move_action_client.sendGoal(move_goal);
 
@@ -1061,10 +1052,7 @@ void VigirManipulationController::sendFixedPoseAffordance(const vigir_object_tem
 
     move_goal.extended_planning_options.target_poses.push_back(affordance.waypoints[0].pose);
 
-    if ( hand_id_> 0 )
-        move_goal.extended_planning_options.target_link_names.push_back("r_hand");
-    else
-        move_goal.extended_planning_options.target_link_names.push_back("l_hand");
+    move_goal.extended_planning_options.target_link_names.push_back(wrist_name_);
 
     move_action_client.sendGoal(move_goal);
 
