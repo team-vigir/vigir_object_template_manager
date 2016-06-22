@@ -7,6 +7,7 @@
 <node name="right_vigir_manipulation_controller" pkg="thor_vt_hand_grasp_controller" type="thor_vt_hand_grasp_controller_node" respawn="true" ><!-- output="screen" launch-prefix="xterm -e gdb -ex r"-->
 
     <param name="eef_idx"  value="1" />      <!-- Index of the end effector "right" -->
+    <param name="traj_controller_namespace"  value="/johnny5/joints" />      <!-- Namespace of the trajectory controller-->
 
     <remap from="template_stitch_pose" to="/manipulation_control/r_hand/template_stitch_pose" />
     <remap from="template_stitch"      to="/manipulation_control/r_hand/template_stitch_request" />
