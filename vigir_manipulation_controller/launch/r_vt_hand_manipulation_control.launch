@@ -34,7 +34,7 @@
   <node name    = "start_right_controller"
         pkg     = "thor_vt_hand_ros_control"
         type    = "start_controller_script"
-        args    = "right_hand_traj_controller" /><!--
+        args    = "/johnny5/joints 1 right_hand_traj_controller" /><!--
         output  = "screen"    />-->
 
 </launch>
