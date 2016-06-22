@@ -150,7 +150,7 @@ void VigirManipulationController::initializeManipulationController(ros::NodeHand
     update_hand_marker_sub_    = nh.subscribe("hand_marker",        1, &VigirManipulationController::updateHandMarkerCallback,   this);
 
     inst_grasp_info_client_    = nh.serviceClient<vigir_object_template_msgs::GetInstantiatedGraspInfo>("/instantiated_grasp_info");
-    template_info_client_      = nh.serviceClient<vigir_object_template_msgs::GetInstantiatedTemplateStateAndTypeInfo>("/template_info");
+    template_info_client_      = nh.serviceClient<vigir_object_template_msgs::GetInstantiatedTemplateStateAndTypeInfo>("/instantiated_template_info");
 
     stitch_object_client_      = nh.serviceClient<vigir_object_template_msgs::SetAttachedObjectTemplate>("/stitch_object_template");
     detach_object_client_      = nh.serviceClient<vigir_object_template_msgs::SetAttachedObjectTemplate>("/detach_object_template");
