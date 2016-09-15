@@ -90,6 +90,7 @@ void ObjectTemplateServer::onInit()
     grasp_info_server_         = nh_out.advertiseService("/grasp_info", &ObjectTemplateServer::graspInfoSrv, this);
     inst_grasp_info_server_    = nh_out.advertiseService("/instantiated_grasp_info", &ObjectTemplateServer::instantiatedGraspInfoSrv, this);
     stitch_object_server_      = nh_out.advertiseService("/stitch_object_template", &ObjectTemplateServer::stitchObjectTemplateSrv, this);
+    align_object_server_       = nh_out.advertiseService("/align_object_template", &ObjectTemplateServer::alignObjectTemplateSrv, this);
     detach_object_server_      = nh_out.advertiseService("/detach_object_template", &ObjectTemplateServer::detachObjectTemplateSrv, this);
     usability_pose_server_     = nh_out.advertiseService("/usability_pose", &ObjectTemplateServer::usabilityPoseSrv, this);
 
@@ -1630,6 +1631,36 @@ bool ObjectTemplateServer::stitchObjectTemplateSrv(vigir_object_template_msgs::S
     return true;
 
 }
+
+bool ObjectTemplateServer::alignObjectTemplateSrv(vigir_object_template_msgs::SetAlignObjectTemplate::Request& req,
+                                              vigir_object_template_msgs::SetAlignObjectTemplate::Response& res)
+{
+//    if(!master_mode_){ //In SLAVE Mode, forwrding through comms
+//        vigir_object_template_msgs::TemplateStateInfo cmd;
+//        cmd.pose = req.pose;
+//        cmd.template_id = req.template_id;
+//        stitch_template_pub_.publish(cmd);
+//    }
+
+    boost::recursive_mutex::scoped_lock lock(template_list_mutex_);
+
+    //ROS_INFO("Updating template %d",(unsigned int)msg->template_id);
+    int index = 0;
+    for(; index < template_id_list_.size(); index++)
+        if(template_id_list_[index] == req.template_id)
+            break;
+    if(index < template_id_list_.size())
+    {
+        template_pose_list_[index] = req.pose;
+    }else{
+        ROS_ERROR("Service requested template id %d when no such id has been instantiated. Callback returning false.",req.template_id);
+        return false;
+    }
+    this->publishTemplateList();
+    return true;
+
+}
+
 
 bool ObjectTemplateServer::detachObjectTemplateSrv(vigir_object_template_msgs::SetAttachedObjectTemplate::Request& req,
                                               vigir_object_template_msgs::SetAttachedObjectTemplate::Response& res)

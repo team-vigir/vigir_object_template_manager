@@ -3,15 +3,49 @@ project(vigir_object_template_server)
 
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
-find_package(catkin REQUIRED COMPONENTS roscpp rospy tf tf_conversions pluginlib std_msgs geometry_msgs moveit_core moveit_ros_planning shape_msgs visualization_msgs vigir_grasp_msgs vigir_object_template_msgs nodelet cmake_modules)
+find_package(catkin REQUIRED COMPONENTS
+    actionlib
+    actionlib_msgs
+    message_generation
+    roscpp rospy
+    tf
+    tf_conversions
+    pluginlib
+    std_msgs
+    geometry_msgs
+    moveit_core
+    moveit_ros_planning
+    shape_msgs
+    visualization_msgs
+    vigir_grasp_msgs
+    vigir_object_template_msgs
+    nodelet
+    cmake_modules
+)
 
 find_package(TinyXML REQUIRED)
+
+
+## Generate actions in the 'action' folder
+ add_action_files(
+   DIRECTORY action
+   FILES AlignObjectTemplate.action
+ )
+
+## Generate added messages and services with any dependencies listed here
+ generate_messages(
+   DEPENDENCIES
+   actionlib_msgs
+   std_msgs
+   geometry_msgs
+ )
+
 
 ## Declare things to be passed to other projects
 catkin_package(	
 	INCLUDE_DIRS src
 	LIBRARIES ${PROJECT_NAME} 
-        CATKIN_DEPENDS roscpp rospy tf tf_conversions pluginlib std_msgs geometry_msgs moveit_core moveit_ros_planning shape_msgs visualization_msgs vigir_grasp_msgs vigir_object_template_msgs nodelet
+        CATKIN_DEPENDS actionlib actionlib_msgs message_generation roscpp rospy tf tf_conversions pluginlib std_msgs geometry_msgs moveit_core moveit_ros_planning shape_msgs visualization_msgs vigir_grasp_msgs vigir_object_template_msgs nodelet
         DEPENDS TinyXML
 )
 

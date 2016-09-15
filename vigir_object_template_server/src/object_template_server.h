@@ -63,6 +63,7 @@
 #include <vigir_object_template_msgs/GetGraspInfo.h>
 #include <vigir_object_template_msgs/GetInstantiatedGraspInfo.h>
 #include <vigir_object_template_msgs/SetAttachedObjectTemplate.h>
+#include <vigir_object_template_msgs/SetAlignObjectTemplate.h>
 #include <vigir_object_template_msgs/GetUsabilityInWristFrame.h>
 #include <vigir_object_template_msgs/Affordance.h>
 #include <vigir_object_template_msgs/Usability.h>
@@ -154,6 +155,9 @@ namespace object_template_server
         bool stitchObjectTemplateSrv(vigir_object_template_msgs::SetAttachedObjectTemplate::Request& req,
                                      vigir_object_template_msgs::SetAttachedObjectTemplate::Response& res);
 
+        bool alignObjectTemplateSrv(vigir_object_template_msgs::SetAlignObjectTemplate::Request& req,
+                                     vigir_object_template_msgs::SetAlignObjectTemplate::Response& res);
+
         bool detachObjectTemplateSrv(vigir_object_template_msgs::SetAttachedObjectTemplate::Request& req,
                                      vigir_object_template_msgs::SetAttachedObjectTemplate::Response& res);
 
@@ -200,6 +204,7 @@ namespace object_template_server
         ros::ServiceServer grasp_info_server_;
         ros::ServiceServer inst_grasp_info_server_;
         ros::ServiceServer stitch_object_server_;
+        ros::ServiceServer align_object_server_;
         ros::ServiceServer detach_object_server_;
         ros::ServiceServer usability_pose_server_;
 
