@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(vigir_object_template_server)
 
+add_compile_options(-std=c++11)
+
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
 find_package(catkin REQUIRED COMPONENTS
