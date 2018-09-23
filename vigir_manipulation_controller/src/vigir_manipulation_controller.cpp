@@ -131,12 +131,9 @@ void VigirManipulationController::initializeManipulationController(ros::NodeHand
 
     wrist_target_pub_           = nh.advertise<geometry_msgs::PoseStamped>("wrist_target",          1, true);
     template_stitch_pose_pub_   = nh.advertise<geometry_msgs::PoseStamped>("template_stitch_pose",  1, true);
-    wrist_plan_pub_             = nh.advertise<vigir_teleop_planning_msgs::PlanRequest>("wrist_plan",       1, true);
     grasp_status_pub_           = nh.advertise<vigir_grasp_msgs::GraspStatus>("grasp_status",       1, true);
     template_mass_pub_          = nh.advertise<vigir_object_template_msgs::VigirHandMass>("hand_mass",         1, true);
     tactile_feedback_pub_       = nh.advertise<vigir_grasp_msgs::LinkState>("link_states",           1, true);
-    circular_plan_request_pub_  = nh.advertise<vigir_teleop_planning_msgs::CircularMotionRequest>( "/flor/planning/upper_body/plan_circular_request",  1, false );
-    cartesian_plan_request_pub_ = nh.advertise<vigir_teleop_planning_msgs::CartesianMotionRequest>("/flor/planning/upper_body/plan_cartesian_request", 1, false );
 
     hand_status_sub_           = nh.subscribe("hand_status",        1, &VigirManipulationController::handStatusCallback,         this);
     grasp_command_sub_         = nh.subscribe("grasp_command",      1, &VigirManipulationController::graspCommandCallback,       this);
@@ -416,19 +413,15 @@ void VigirManipulationController::moveToPoseCallback(const vigir_grasp_msgs::Gra
             if(index >= size)
                 ROS_ERROR_STREAM("Template server response id: " << last_grasp_res_.grasp_information.grasps[index].id << " while searching for id: " << grasp.grasp_id.data);
             else{
-                this->wrist_target_pose_.planning_group                          = planning_group_;
-                this->wrist_target_pose_.target_link_name                        = wrist_name_;
-                this->wrist_target_pose_.use_environment_obstacle_avoidance      = true;
                 if(grasp.final_pose){
-                    this->wrist_target_pose_.pose = grasp_pose;
+                    this->wrist_target_pose_ = grasp_pose;
                     calcWristTarget(grasp_pose.pose);  //Applies stitch transform in hand frame
-                    wrist_target_pub_.publish(wrist_target_pose_.pose);
-                    sendFinalGrasp(wrist_target_pose_.pose);
                 }else{
-                    this->wrist_target_pose_.pose = pre_grasp_pose;
+                    this->wrist_target_pose_ = pre_grasp_pose;
                     calcWristTarget(pre_grasp_pose.pose);
-                    this->updateWristTarget();
                 }
+                wrist_target_pub_.publish(wrist_target_pose_.pose);
+                sendGrasp(wrist_target_pose_, grasp.final_pose);
             }
         }
     }
@@ -544,14 +537,14 @@ int VigirManipulationController::calcWristTarget(const geometry_msgs::Pose& wris
     tg_quat   = world_T_hand_target.getRotation();
     tg_vector = world_T_hand_target.getOrigin();
 
-    this->wrist_target_pose_.pose.pose.orientation.w = tg_quat.getW();
-    this->wrist_target_pose_.pose.pose.orientation.x = tg_quat.getX();
-    this->wrist_target_pose_.pose.pose.orientation.y = tg_quat.getY();
-    this->wrist_target_pose_.pose.pose.orientation.z = tg_quat.getZ();
+    this->wrist_target_pose_.pose.orientation.w = tg_quat.getW();
+    this->wrist_target_pose_.pose.orientation.x = tg_quat.getX();
+    this->wrist_target_pose_.pose.orientation.y = tg_quat.getY();
+    this->wrist_target_pose_.pose.orientation.z = tg_quat.getZ();
 
-    this->wrist_target_pose_.pose.pose.position.x = tg_vector.getX();
-    this->wrist_target_pose_.pose.pose.position.y = tg_vector.getY();
-    this->wrist_target_pose_.pose.pose.position.z = tg_vector.getZ();
+    this->wrist_target_pose_.pose.position.x = tg_vector.getX();
+    this->wrist_target_pose_.pose.position.y = tg_vector.getY();
+    this->wrist_target_pose_.pose.position.z = tg_vector.getZ();
 
     return 0;
 }
@@ -606,68 +599,10 @@ int VigirManipulationController::poseTransform(const tf::Transform &transform, g
     return 0;
 }
 
-//void VigirManipulationController::setGraspStatus(const RobotStatusCodes::StatusCode &status, const RobotStatusCodes::StatusLevel &severity)
-//{
-//    if ((RobotStatusCodes::NO_ERROR == this->grasp_status_code_)  || (RobotStatusCodes::GRASP_CONTROLLER_OK == this->grasp_status_code_))
-//    {
-//        this->grasp_status_code_      = status;
-//        this->grasp_status_severity_  = severity;
-//    }
-//    else
-//    {
-//        uint16_t current_code;
-//        uint8_t  current_severity;
-//        RobotStatusCodes::codes(this->grasp_status_code_, current_code, current_severity);
-//        if (this->grasp_status_severity_ < severity)
-//        {
-//            ROS_DEBUG(" Overwriting grasp controller error code %d:%d with %d:%d", this->grasp_status_code_, this->grasp_status_severity_, status, severity);
-//            this->grasp_status_code_      = status;
-//            this->grasp_status_severity_  = severity;
-//            return;
-//        }
-//    }
-//}
-
 void VigirManipulationController::setLinkState(vigir_grasp_msgs::LinkState link_state){
     link_tactile_ = link_state;
 }
 
-void VigirManipulationController::updateWristTarget()
-{
-    if (wrist_target_pub_ && wrist_plan_pub_)
-    {
-        wrist_target_pub_.publish(wrist_target_pose_.pose);
-        wrist_plan_pub_.publish(wrist_target_pose_);
-    }
-    else
-        ROS_WARN("Invalid wrist target publisher");
-}
-
-/**
- * This function must be called to publish the grasp state machine status.
- */
-//inline void VigirManipulationController::updateGraspStatus()
-//{
-
-//    uint16_t current_status = RobotStatusCodes::status(this->grasp_status_code_,this->grasp_status_severity_);
-//    if (this->grasp_status_code_ == RobotStatusCodes::NO_ERROR)
-//    {
-//        // Assign a meaningful message to robot_status for annunciator window
-//        this->grasp_status_code_ = RobotStatusCodes::GRASP_CONTROLLER_OK;
-//    }
-//    if (current_status != grasp_status_.status)
-//    {
-
-//        ROS_INFO("   Update Grasp Status %d:%d  for %s", this->grasp_status_code_,this->grasp_status_severity_, this->wrist_name_.c_str());
-//        grasp_status_.stamp  = ros::Time::now();
-//        grasp_status_.status = current_status;
-
-//        if (grasp_status_pub_)
-//            grasp_status_pub_.publish(grasp_status_);
-//        else
-//            ROS_WARN("Invalid grasp status publisher");
-//    }
-//}
 
 inline void VigirManipulationController::updateTemplateMass()
 {
@@ -799,7 +734,7 @@ void VigirManipulationController::setDetachingObject(const vigir_grasp_msgs::Tem
     updateTemplateMass();
 }
 
-void VigirManipulationController::sendFinalGrasp(const geometry_msgs::PoseStamped& final_grasp)
+void VigirManipulationController::sendGrasp(const geometry_msgs::PoseStamped& grasp, bool final_grasp)
 {
     actionlib::SimpleActionClient<vigir_planning_msgs::MoveAction> move_action_client("/vigir_move_group",true);
 
@@ -812,8 +747,17 @@ void VigirManipulationController::sendFinalGrasp(const geometry_msgs::PoseStampe
     ROS_INFO("Action server started, sending goal.");
     vigir_planning_msgs::MoveGoal move_goal;
 
-    move_goal.extended_planning_options.target_motion_type                 = vigir_planning_msgs::ExtendedPlanningOptions::TYPE_CARTESIAN_WAYPOINTS;
-    move_goal.extended_planning_options.allow_environment_collisions       = true;
+    if(final_grasp){
+        move_goal.extended_planning_options.target_motion_type                 = vigir_planning_msgs::ExtendedPlanningOptions::TYPE_CARTESIAN_WAYPOINTS;
+        move_goal.extended_planning_options.allow_environment_collisions       = true;
+        move_goal.request.max_velocity_scaling_factor                          = 0.1;
+    }else{
+        move_goal.extended_planning_options.target_motion_type                 = vigir_planning_msgs::ExtendedPlanningOptions::TYPE_FREE_MOTION;
+        move_goal.extended_planning_options.allow_environment_collisions       = false;
+        move_goal.request.max_velocity_scaling_factor                          = 0.5;
+    }
+
+
     move_goal.extended_planning_options.keep_endeffector_orientation       = false;  //Final Grasps are always sent to the correct orientation
     move_goal.extended_planning_options.execute_incomplete_cartesian_plans = true;
 
@@ -827,10 +771,9 @@ void VigirManipulationController::sendFinalGrasp(const geometry_msgs::PoseStampe
 
     move_goal.request.allowed_planning_time                                = 1.0;
     move_goal.request.num_planning_attempts                                = 1;
-    move_goal.request.max_velocity_scaling_factor                          = 0.1;
 
-    move_goal.extended_planning_options.target_frame = final_grasp.header.frame_id;
-    move_goal.extended_planning_options.target_poses.push_back(final_grasp.pose);
+    move_goal.extended_planning_options.target_frame = grasp.header.frame_id;
+    move_goal.extended_planning_options.target_poses.push_back(grasp.pose);
 
     move_goal.extended_planning_options.target_link_names.push_back(wrist_name_);
 

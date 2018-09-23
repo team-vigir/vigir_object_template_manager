@@ -52,9 +52,6 @@
 #include <vigir_grasp_msgs/GraspState.h>
 #include <vigir_grasp_msgs/GraspStatus.h>
 #include <vigir_grasp_msgs/HandStatus.h>
-#include <vigir_teleop_planning_msgs/PlanRequest.h>
-#include <vigir_teleop_planning_msgs/CircularMotionRequest.h>
-#include <vigir_teleop_planning_msgs/CartesianMotionRequest.h>
 
 #include <actionlib/client/simple_action_client.h>
 #include <vigir_planning_msgs/MoveAction.h>
@@ -162,7 +159,7 @@ namespace vigir_manipulation_controller {
     tf::Transform                              hand_T_marker_;
     tf::Transform                              hand_T_usability_;
 //    tf::TransformListener                      listener_;
-    vigir_teleop_planning_msgs::PlanRequest    wrist_target_pose_;
+    geometry_msgs::PoseStamped                 wrist_target_pose_;
     vigir_object_template_msgs::VigirHandMass  template_mass_msg_;
     geometry_msgs::PoseStamped                 com_;
     geometry_msgs::PoseStamped                 wrist_T_template_;
@@ -231,8 +228,6 @@ namespace vigir_manipulation_controller {
    /**
     * This function must be called to publish the updated wrist target after the template is updated.
     */
-    void updateWristTarget();
-
     void updateGraspStatus(); // call to publish latest grasp data
     void updateTemplateMass(); // call to publish latest grasp data
     void processTemplateMassData(const geometry_msgs::PoseStamped &template_pose, const float &template_mass, const geometry_msgs::Point &template_com);
@@ -246,7 +241,7 @@ namespace vigir_manipulation_controller {
     void sendCircularAffordance(const vigir_object_template_msgs::Affordance& affordance);
     void sendCartesianAffordance(vigir_object_template_msgs::Affordance affordance);
     void sendFixedPoseAffordance(const vigir_object_template_msgs::Affordance& affordance);
-    void sendFinalGrasp(const geometry_msgs::PoseStamped &final_grasp);
+    void sendGrasp(const geometry_msgs::PoseStamped &grasp, bool final_grasp);
 
     bool affordanceInWristFrame(vigir_object_template_msgs::GetAffordanceInWristFrame::Request& req,
                                 vigir_object_template_msgs::GetAffordanceInWristFrame::Response& res);
