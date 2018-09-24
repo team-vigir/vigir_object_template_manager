@@ -219,8 +219,7 @@ namespace object_template_server
         unsigned char                              id_counter_;
         std::vector<geometry_msgs::PoseStamped>    template_last_pose_list_;
         // Filename of the grasping library
-        std::string                                r_grasps_filename_;
-        std::string                                l_grasps_filename_;
+        std::vector<std::string>                   grasps_filenames_;
         // Filename of the object template library
         std::string                                ot_filename_;
         // Filename of the stand pose library
@@ -228,10 +227,9 @@ namespace object_template_server
         // Hand parameters
         std::string palm_link_;
         std::string wrist_link_;
-        std::string hand_group_;
-        std::string left_wrist_link_, right_wrist_link_;
-        std::string left_palm_link_,  right_palm_link_;
-        std::string left_hand_group_, right_hand_group_;
+        std::string gripper_group_;
+        XmlRpc::XmlRpcValue manipulators_;
+
 
         //Server mode parameter
         bool master_mode_;
@@ -242,6 +240,12 @@ namespace object_template_server
         typedef VigirObjectTemplateMap::iterator VigirObjectTemplateMapIter;
         typedef VigirObjectTemplateMap::const_iterator VigirObjectTemplateMapCIter;
         VigirObjectTemplateMap object_template_map_;
+
+
+        typedef std::map<std::string,std::string> VigirGraspsMap;
+        typedef VigirGraspsMap::iterator VigirGraspsMapIter;
+        typedef VigirGraspsMap::const_iterator VigirGraspsMapCIter;
+        VigirGraspsMap grasps_filenames_map_;
 
         robot_model_loader::RobotModelLoaderPtr    robot_model_loader_;
         robot_model::RobotModelPtr                 robot_model_;
