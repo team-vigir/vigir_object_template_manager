@@ -834,7 +834,9 @@ bool ObjectTemplateServer::graspInfoSrv(vigir_object_template_msgs::GetGraspInfo
                                                                  it2 != object_template_map_[req.template_type].grasps.end();
                                                                  ++it2){
             res.grasp_information.grasps.push_back(it2->second);
-            res.pre_grasp_information.grasps.push_back(it2->second);
+            moveit_msgs::Grasp pre_grasp = it2->second;
+            gripperTranslationToPreGraspPose(pre_grasp.grasp_pose.pose,pre_grasp.pre_grasp_approach);
+            res.pre_grasp_information.grasps.push_back(pre_grasp);
         }
         for (std::map<unsigned int,vigir_object_template_msgs::StandPose>::iterator it2  = object_template_map_[req.template_type].stand_poses.begin();
                                                                          it2 != object_template_map_[req.template_type].stand_poses.end();
