@@ -829,14 +829,14 @@ bool ObjectTemplateServer::graspInfoSrv(vigir_object_template_msgs::GetGraspInfo
     /*Fill in the blanks of the response "res"
      * with the info of the template id in the request "req"
     */
+    ROS_INFO("Executing service to get grasp info from: %s", req.grasp_id.c_str());
     if(object_template_map_.size() > 0){
         for (std::map<unsigned int,moveit_msgs::Grasp>::iterator it2  = object_template_map_[req.template_type].grasps.begin();
                                                                  it2 != object_template_map_[req.template_type].grasps.end();
                                                                  ++it2){
+          if((it2->second).id == req.grasp_id){
             res.grasp_information.grasps.push_back(it2->second);
-            moveit_msgs::Grasp pre_grasp = it2->second;
-            gripperTranslationToPreGraspPose(pre_grasp.grasp_pose.pose,pre_grasp.pre_grasp_approach);
-            res.pre_grasp_information.grasps.push_back(pre_grasp);
+          }
         }
         for (std::map<unsigned int,vigir_object_template_msgs::StandPose>::iterator it2  = object_template_map_[req.template_type].stand_poses.begin();
                                                                          it2 != object_template_map_[req.template_type].stand_poses.end();
