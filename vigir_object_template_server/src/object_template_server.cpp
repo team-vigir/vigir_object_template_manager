@@ -139,7 +139,7 @@ void ObjectTemplateServer::loadGraspDatabaseXML(std::string& file_name, std::str
         const char *pName=pGrasps->Attribute("template_name");
         int template_type;
         pGrasps->QueryIntAttribute("template_type", &template_type);
-        if (pName) ROS_INFO("Reading Grasps for %s type: %d",pName, template_type);
+        if (pName) ROS_DEBUG("Reading Grasps for %s type: %d",pName, template_type);
 
         TiXmlElement* pGrasp=pGrasps->FirstChildElement( "grasp" );
         for( pGrasp; pGrasp; pGrasp=pGrasp->NextSiblingElement( "grasp" ) )   //Iterates thorugh all grasp IDs for this particular template type
@@ -149,13 +149,13 @@ void ObjectTemplateServer::loadGraspDatabaseXML(std::string& file_name, std::str
             grasp.grasp_pose.header.frame_id = wrist_link_;
 
             const char *pID=pGrasp->Attribute("id");
-            if (pID) ROS_INFO("Found Grasp id: %s",pID);
+            if (pID) ROS_DEBUG("Found Grasp id: %s",pID);
             grasp.id = std::string(pID);
 
             TiXmlElement* pPose=pGrasp->FirstChildElement( "final_pose" );       //Gets final grasp pose
             if(!pPose)
             {
-                ROS_WARN("Grasp ID: %s does not contain an final pose, setting identity",pID);
+                ROS_DEBUG("Grasp ID: %s does not contain an final pose, setting identity",pID);
                 grasp.grasp_pose.pose.position.x    = 0.0;
                 grasp.grasp_pose.pose.position.y    = 0.0;
                 grasp.grasp_pose.pose.position.z    = 0.0;
@@ -185,12 +185,12 @@ void ObjectTemplateServer::loadGraspDatabaseXML(std::string& file_name, std::str
                 grasp.grasp_pose.header.frame_id    = wrist_link_;
             }
 
-            ROS_INFO_STREAM("Added grasp information id: " << grasp.id << " pose: " << std::endl << grasp.grasp_pose.pose);
+            ROS_DEBUG_STREAM("Added grasp information id: " << grasp.id << " pose: " << std::endl << grasp.grasp_pose.pose);
 
             TiXmlElement* pApproachingVector=pGrasp->FirstChildElement( "approaching_vector" );       //Gets approaching vector
             if(!pApproachingVector)
             {
-                ROS_WARN("Grasp ID: %s does not contain an approaching vector, setting default values",pID);
+                ROS_DEBUG("Grasp ID: %s does not contain an approaching vector, setting default values",pID);
                 grasp.pre_grasp_approach.direction.vector.x = 0.00;
                 grasp.pre_grasp_approach.direction.vector.y = 1.00;
                 grasp.pre_grasp_approach.direction.vector.z = 0.00;
@@ -213,7 +213,7 @@ void ObjectTemplateServer::loadGraspDatabaseXML(std::string& file_name, std::str
                 pApproachingVector->QueryFloatAttribute("minimal", &grasp.pre_grasp_approach.min_distance);
             }
 
-            ROS_INFO_STREAM("Added aproaching vector information id: " << grasp.id << " pose: " << std::endl << grasp.pre_grasp_approach);
+            ROS_DEBUG_STREAM("Added aproaching vector information id: " << grasp.id << " pose: " << std::endl << grasp.pre_grasp_approach);
 
             grasp.pre_grasp_posture.points.resize(1);
             grasp.pre_grasp_posture.points[0].time_from_start = ros::Duration(0.5);
@@ -221,7 +221,7 @@ void ObjectTemplateServer::loadGraspDatabaseXML(std::string& file_name, std::str
             TiXmlElement* pPrePosture=pGrasp->FirstChildElement( "pre_grasp_posture" );
             if(!pPrePosture)
             {
-                ROS_WARN("Grasp ID: %s does not contain a pregrasp posture, setting all %d joints to zeros",pID, (int)hand_joint_names_.size());
+                ROS_DEBUG("Grasp ID: %s does not contain a pregrasp posture, setting all %d joints to zeros",pID, (int)hand_joint_names_.size());
                 if(hand_joint_names_.size() > 0)
                 {
                     grasp.pre_grasp_posture.joint_names.resize(hand_joint_names_.size());
@@ -233,7 +233,7 @@ void ObjectTemplateServer::loadGraspDatabaseXML(std::string& file_name, std::str
                 }
                 else
                 {
-                    ROS_WARN("Grasp ID: %s does not contain a pregrasp posture and URDF shows no %s hand joints",pID, gripper.c_str());
+                    ROS_DEBUG("Grasp ID: %s does not contain a pregrasp posture and URDF shows no %s hand joints",pID, gripper.c_str());
                 }
             }
             else
@@ -241,7 +241,7 @@ void ObjectTemplateServer::loadGraspDatabaseXML(std::string& file_name, std::str
                 TiXmlElement* pFinger=pPrePosture->FirstChildElement( "finger" );       //Gets pre finger joints
                 if(!pFinger)
                 {
-                    ROS_WARN("Grasp ID: %s does not contain any finger, setting joints to zeros",pID);
+                    ROS_DEBUG("Grasp ID: %s does not contain any finger, setting joints to zeros",pID);
                 }
                 else
                 {
@@ -250,7 +250,7 @@ void ObjectTemplateServer::loadGraspDatabaseXML(std::string& file_name, std::str
                         TiXmlElement* pJoint=pFinger->FirstChildElement( "joint" );       //Gets approaching vector
                         if(!pJoint)
                         {
-                            ROS_WARN("Grasp ID: %s does not contain joints for finger %s",pID, pFinger->Attribute("idx"));
+                            ROS_DEBUG("Grasp ID: %s does not contain joints for finger %s",pID, pFinger->Attribute("idx"));
                         }
                         else
                         {
@@ -260,14 +260,14 @@ void ObjectTemplateServer::loadGraspDatabaseXML(std::string& file_name, std::str
                                 if (pJointName)
                                     grasp.pre_grasp_posture.joint_names.push_back(pJointName);
                                 else
-                                    ROS_WARN("Found joint without name for finger %s",pFinger->Attribute("idx"));
+                                    ROS_DEBUG("Found joint without name for finger %s",pFinger->Attribute("idx"));
                                 pJoint->QueryFloatAttribute("value", &x);
                                 grasp.pre_grasp_posture.points[0].positions.push_back(x);
                             }
                         }
                     }
 
-                    ROS_INFO_STREAM("Added pre_grasp_posture information id: " << grasp.id << " pose: " << std::endl << grasp.pre_grasp_posture);
+                    ROS_DEBUG_STREAM("Added pre_grasp_posture information id: " << grasp.id << " pose: " << std::endl << grasp.pre_grasp_posture);
                 }
             }
 
@@ -277,7 +277,7 @@ void ObjectTemplateServer::loadGraspDatabaseXML(std::string& file_name, std::str
             TiXmlElement* pPosture=pGrasp->FirstChildElement( "grasp_posture" );
             if(!pPosture)
             {
-                ROS_WARN("Grasp ID: %s does not contain a grasp posture, setting all %d joints to zeros",pID, (int)hand_joint_names_.size());
+                ROS_DEBUG("Grasp ID: %s does not contain a grasp posture, setting all %d joints to zeros",pID, (int)hand_joint_names_.size());
                 if(hand_joint_names_.size() > 0)
                 {
                     grasp.grasp_posture.joint_names.resize(hand_joint_names_.size());
@@ -289,7 +289,7 @@ void ObjectTemplateServer::loadGraspDatabaseXML(std::string& file_name, std::str
                 }
                 else
                 {
-                    ROS_WARN("Grasp ID: %s does not contain a grasp posture and URDF shows no %s hand joints",pID, gripper.c_str());
+                    ROS_DEBUG("Grasp ID: %s does not contain a grasp posture and URDF shows no %s hand joints",pID, gripper.c_str());
                 }
             }
             else
@@ -297,7 +297,7 @@ void ObjectTemplateServer::loadGraspDatabaseXML(std::string& file_name, std::str
                 TiXmlElement* pFinger=pPosture->FirstChildElement( "finger" );       //Gets final finger joints
                 if(!pFinger)
                 {
-                    ROS_WARN("Grasp ID: %s does not contain any finger, setting joints to zeros",pID);
+                    ROS_DEBUG("Grasp ID: %s does not contain any finger, setting joints to zeros",pID);
                 }
                 else
                 {
@@ -306,7 +306,7 @@ void ObjectTemplateServer::loadGraspDatabaseXML(std::string& file_name, std::str
                         TiXmlElement* pJoint=pFinger->FirstChildElement( "joint" );       //Gets approaching vector
                         if(!pJoint)
                         {
-                            ROS_WARN("Grasp ID: %s does not contain joints for finger %s",pID, pFinger->Attribute("idx"));
+                            ROS_DEBUG("Grasp ID: %s does not contain joints for finger %s",pID, pFinger->Attribute("idx"));
                         }
                         else
                         {
@@ -316,19 +316,19 @@ void ObjectTemplateServer::loadGraspDatabaseXML(std::string& file_name, std::str
                                 if (pJointName)
                                     grasp.grasp_posture.joint_names.push_back(pJointName);
                                 else
-                                    ROS_WARN("Found joint without name for finger %s",pFinger->Attribute("idx"));
+                                    ROS_DEBUG("Found joint without name for finger %s",pFinger->Attribute("idx"));
                                 pJoint->QueryFloatAttribute("value", &x);
                                 grasp.grasp_posture.points[0].positions.push_back(x);
                             }
                         }
                     }
 
-                    ROS_INFO_STREAM("Added grasp_posture information id: " << grasp.id << " pose: " << std::endl << grasp.grasp_posture);
+                    ROS_DEBUG_STREAM("Added grasp_posture information id: " << grasp.id << " pose: " << std::endl << grasp.grasp_posture);
                 }
             }
 
             //RETREAT VECTOR (FIXING TO LIFT 10cm AFTER GRASPING)
-            //ROS_INFO("Staring retreat vector idx: %d",idx);
+            //ROS_DEBUG("Staring retreat vector idx: %d",idx);
             grasp.post_grasp_retreat.direction.header.frame_id = "/world";
             grasp.post_grasp_retreat.direction.vector.z        = 1.0;
             grasp.post_grasp_retreat.min_distance              = 0.05;
@@ -383,7 +383,7 @@ void ObjectTemplateServer::loadStandPosesDatabaseXML(std::string& file_name){
 
     // save this for later
     hRoot=TiXmlHandle(pElem);
-    ROS_INFO("Reading %s", pElem->Value());
+    ROS_DEBUG("Reading %s", pElem->Value());
 
 
 
@@ -393,7 +393,7 @@ void ObjectTemplateServer::loadStandPosesDatabaseXML(std::string& file_name){
         int template_type;
         const char *pName=pTemplate->Attribute("template_name");
         pTemplate->QueryIntAttribute("template_type", &template_type);
-        if (pName) ROS_INFO("Reading %s type: %d",pName, template_type);
+        if (pName) ROS_DEBUG("Reading %s type: %d",pName, template_type);
 
         TiXmlElement* pStandPose=pTemplate->FirstChildElement( "standpose" );
         for( pStandPose; pStandPose; pStandPose=pStandPose->NextSiblingElement("standpose" )) //Iterates thorugh all template types
@@ -470,7 +470,7 @@ void ObjectTemplateServer::loadObjectTemplateDatabaseXML(std::string& file_name)
 
     // save this for later
     hRoot=TiXmlHandle(pElem);
-    ROS_INFO("Reading %s", pElem->Value());
+    ROS_DEBUG("Reading %s", pElem->Value());
 
     TiXmlElement* pTemplate=hRoot.FirstChild( "template" ).Element();
     int count=0;
@@ -482,7 +482,7 @@ void ObjectTemplateServer::loadObjectTemplateDatabaseXML(std::string& file_name)
         const char *pGroup=pTemplate->Attribute("group");
         int template_type;
         pTemplate->QueryIntAttribute("template_type", &template_type);
-        if (pName) ROS_INFO("Reading %s type: %d",pName, template_type);
+        if (pName) ROS_DEBUG("Reading %s type: %d",pName, template_type);
 
         object_template.name = pName;
         object_template.type = template_type;
@@ -502,7 +502,7 @@ void ObjectTemplateServer::loadObjectTemplateDatabaseXML(std::string& file_name)
         //Getting Mass
         TiXmlElement* pMass=pTemplate->FirstChildElement( "inertial" )->FirstChildElement("mass");
         if(!pMass){
-            ROS_WARN("Template ID: %d does not contain a mass value, setting to 0",template_type);
+            ROS_DEBUG("Template ID: %d does not contain a mass value, setting to 0",template_type);
             object_template.mass = 0;
         }else{
             object_template.mass = std::atof(pMass->Attribute("value"));
@@ -511,7 +511,7 @@ void ObjectTemplateServer::loadObjectTemplateDatabaseXML(std::string& file_name)
         //Getting CoM
         TiXmlElement* pCoM=pTemplate->FirstChildElement( "inertial" )->FirstChildElement("origin");
         if(!pCoM){
-            ROS_WARN("Template ID: %d does not contain a mass value, setting to 0",template_type);
+            ROS_DEBUG("Template ID: %d does not contain a mass value, setting to 0",template_type);
             object_template.com.x = object_template.com.y = object_template.com.z = 0;
         }else{
             geometry_msgs::Point com;
@@ -531,7 +531,7 @@ void ObjectTemplateServer::loadObjectTemplateDatabaseXML(std::string& file_name)
         //Getting Inertia
         TiXmlElement* pInertia=pTemplate->FirstChildElement( "inertial" )->FirstChildElement("inertia");
         if(!pInertia){
-            ROS_WARN("Template ID: %d does not contain an inertia tensor",template_type);
+            ROS_DEBUG("Template ID: %d does not contain an inertia tensor",template_type);
         }else{
             //object_template.inertia.ixx = std::atof(pInertia->Attribute("ixx"));
             //object_template.inertia.ixy = std::atof(pInertia->Attribute("ixy"));
@@ -544,7 +544,7 @@ void ObjectTemplateServer::loadObjectTemplateDatabaseXML(std::string& file_name)
         //Getting bounding box
         TiXmlElement* pBoundingBox=pTemplate->FirstChildElement( "visual" )->FirstChildElement("geometry")->FirstChildElement("boundingbox");
         if(!pBoundingBox){
-            ROS_WARN("Template ID: %d does not contain a  bounding box, setting to zeros",template_type);
+            ROS_DEBUG("Template ID: %d does not contain a  bounding box, setting to zeros",template_type);
             object_template.b_max.x = object_template.b_max.y = object_template.b_max.z = 0;
             object_template.b_min.x = object_template.b_min.y = object_template.b_min.z = 0;
         }else{
@@ -609,7 +609,7 @@ void ObjectTemplateServer::loadObjectTemplateDatabaseXML(std::string& file_name)
                 if(pUsability->Attribute("name"))
                     usability.name = pUsability->Attribute("name");
                 else{
-                    ROS_WARN("Usability ID: %d has no name attribute, setting to usability_%d", usability.id, usability.id);
+                    ROS_DEBUG("Usability ID: %d has no name attribute, setting to usability_%d", usability.id, usability.id);
                     usability.name = "usability_" + boost::to_string(pUsability->Attribute("id"));
                 }
 
@@ -626,7 +626,7 @@ void ObjectTemplateServer::loadObjectTemplateDatabaseXML(std::string& file_name)
             if(pAffordance->Attribute("id")){
                 affordance.id = std::atoi(pAffordance->Attribute("id"));
             }else{
-                ROS_WARN("Affordance ID not found, setting to %d",aff_idx);
+                ROS_DEBUG("Affordance ID not found, setting to %d",aff_idx);
                 affordance.id = aff_idx;
                 aff_idx++;
             }
@@ -636,7 +636,7 @@ void ObjectTemplateServer::loadObjectTemplateDatabaseXML(std::string& file_name)
                 ROS_ERROR("Template ID: %d does not contain a  pose in affordance id: %s, skipping template",template_type,pAffordance->Attribute("id"));
                 continue;
             }else{
-                ROS_INFO("Getting poses for affordance %d", affordance.id);
+                ROS_DEBUG("Getting poses for affordance %d", affordance.id);
                 for(pPose; pPose; pPose=pPose->NextSiblingElement("pose")){
 
                     double qx,qy,qz,qw;
@@ -663,36 +663,36 @@ void ObjectTemplateServer::loadObjectTemplateDatabaseXML(std::string& file_name)
                     waypoint.pose.orientation.z = qz;
                     waypoint.pose.orientation.w = qw;
                     affordance.waypoints.push_back(waypoint);
-                    ROS_INFO("Getting %d waypoints", (int)affordance.waypoints.size());
+                    ROS_DEBUG("Getting %d waypoints", (int)affordance.waypoints.size());
                 }
-                ROS_INFO("Finished getting poses");
+                ROS_DEBUG("Finished getting poses");
 
 
                 if(pAffordance->Attribute("name"))
                     affordance.name = pAffordance->Attribute("name");
                 else{
-                    ROS_WARN("Affordance ID: %d has no name attribute, setting to aff_%d", affordance.id, affordance.id);
+                    ROS_DEBUG("Affordance ID: %d has no name attribute, setting to aff_%d", affordance.id, affordance.id);
                     affordance.name = "aff_" + boost::to_string(affordance.id);
                 }
 
                 if(pAffordance->Attribute("type"))
                     affordance.type = pAffordance->Attribute("type");
                 else{
-                    ROS_WARN("Affordance ID: %d has no type attribute, setting to no_type", affordance.id);
+                    ROS_DEBUG("Affordance ID: %d has no type attribute, setting to no_type", affordance.id);
                     affordance.type = "no_type";
                 }
 
                 if(pAffordance->Attribute("axis"))
                     affordance.axis = pAffordance->Attribute("axis");
                 else{
-                    ROS_WARN("Affordance ID: %d has no axis attribute, setting to no_axis", affordance.id);
+                    ROS_DEBUG("Affordance ID: %d has no axis attribute, setting to no_axis", affordance.id);
                     affordance.axis = "no_axis";
                 }
 
                 if(pAffordance->Attribute("pitch"))
                     affordance.pitch = std::atof(pAffordance->Attribute("pitch"));
                 else{
-                    ROS_WARN("Affordance ID: %d has no pitch attribute, setting to 0", affordance.id);
+                    ROS_DEBUG("Affordance ID: %d has no pitch attribute, setting to 0", affordance.id);
                     affordance.pitch = 0.0;
                 }
 
@@ -702,7 +702,7 @@ void ObjectTemplateServer::loadObjectTemplateDatabaseXML(std::string& file_name)
                     else
                         affordance.displacement = std::atof(pAffordance->Attribute("displacement"));
                 }else{
-                    ROS_WARN("Affordance ID: %d has no displacement attribute, setting to zero", affordance.id);
+                    ROS_DEBUG("Affordance ID: %d has no displacement attribute, setting to zero", affordance.id);
                     affordance.displacement = 0.0;
                 }
 
@@ -713,7 +713,7 @@ void ObjectTemplateServer::loadObjectTemplateDatabaseXML(std::string& file_name)
                         affordance.keep_orientation = false;
 
                 }else{
-                    ROS_WARN("Affordance ID: %d has no keeporientation attribute, setting to true", affordance.id);
+                    ROS_DEBUG("Affordance ID: %d has no keeporientation attribute, setting to true", affordance.id);
                     affordance.keep_orientation     = true;
                 }
 
