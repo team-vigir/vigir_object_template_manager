@@ -829,17 +829,30 @@ bool ObjectTemplateServer::graspInfoSrv(vigir_object_template_msgs::GetGraspInfo
     /*Fill in the blanks of the response "res"
      * with the info of the template id in the request "req"
     */
+    std::uint16_t template_type = 0;
+
+    if(!req.template_name.empty()){
+        ROS_INFO("Get grasp info from template: %s", req.template_name.c_str());
+        for ( unsigned int i= 0; i < object_template_map_.size(); i++){
+            if(req.template_name == object_template_map_[i].name ){
+                template_type = object_template_map_[i].type;
+                break;
+            }
+        }
+    }else{
+        template_type = req.template_type;
+    }
     ROS_INFO("Executing service to get grasp info from: %s", req.grasp_id.c_str());
     if(object_template_map_.size() > 0){
-        for (std::map<unsigned int,moveit_msgs::Grasp>::iterator it2  = object_template_map_[req.template_type].grasps.begin();
-                                                                 it2 != object_template_map_[req.template_type].grasps.end();
+        for (std::map<unsigned int,moveit_msgs::Grasp>::iterator it2  = object_template_map_[template_type].grasps.begin();
+                                                                 it2 != object_template_map_[template_type].grasps.end();
                                                                  ++it2){
           if((it2->second).id == req.grasp_id){
             res.grasp_information.grasps.push_back(it2->second);
           }
         }
-        for (std::map<unsigned int,vigir_object_template_msgs::StandPose>::iterator it2  = object_template_map_[req.template_type].stand_poses.begin();
-                                                                         it2 != object_template_map_[req.template_type].stand_poses.end();
+        for (std::map<unsigned int,vigir_object_template_msgs::StandPose>::iterator it2  = object_template_map_[template_type].stand_poses.begin();
+                                                                         it2 != object_template_map_[template_type].stand_poses.end();
                                                                          ++it2){
             res.grasp_information.stand_poses.push_back(it2->second);
         }
