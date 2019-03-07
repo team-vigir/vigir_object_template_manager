@@ -1006,4 +1006,4 @@ void ObjectTemplateServer::updateGrasp(vigir_object_template_msgs::TemplateGrasp
 
 }
 
-PLUGINLIB_DECLARE_CLASS (vigir_object_template_server, ObjectTemplateServer, object_template_server::ObjectTemplateServer, nodelet::Nodelet);
+PLUGINLIB_EXPORT_CLASS(object_template_server::ObjectTemplateServer, nodelet::Nodelet);
